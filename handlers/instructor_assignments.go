@@ -91,17 +91,37 @@ func (h *InstructorAssignmentHandlers) CreateAssignment(c *gin.Context) {
 	// Parse request body
 	var req CreateAssignmentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		println("Parse error:", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	// Debug: Log the parsed request
+	println("Parsed request - Title:", req.Title, "URL:", req.URL, "Category:", req.Category)
+
 	// Parse due date if provided
 	var dueDate *time.Time
 	if req.DueDate != "" {
-		parsedDate, err := time.Parse(time.RFC3339, req.DueDate)
+		// Try different date formats
+		var parsedDate time.Time
+		var err error
+
+		// First try RFC3339 format (ISO 8601)
+		parsedDate, err = time.Parse(time.RFC3339, req.DueDate)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid due date format"})
-			return
+			// Try datetime-local format (YYYY-MM-DDTHH:MM) - assume local timezone
+			parsedDate, err = time.ParseInLocation("2006-01-02T15:04", req.DueDate, time.Local)
+			if err != nil {
+				// Try date only format - assume local timezone, end of day
+				parsedDate, err = time.ParseInLocation("2006-01-02", req.DueDate, time.Local)
+				if err != nil {
+					println("Due date parsing failed for:", req.DueDate)
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid due date format. Expected YYYY-MM-DD or YYYY-MM-DDTHH:MM"})
+					return
+				}
+				// If it's just a date, set it to end of day (23:59:59)
+				parsedDate = time.Date(parsedDate.Year(), parsedDate.Month(), parsedDate.Day(), 23, 59, 59, 0, parsedDate.Location())
+			}
 		}
 		dueDate = &parsedDate
 	}
@@ -204,10 +224,26 @@ func (h *InstructorAssignmentHandlers) UpdateAssignment(c *gin.Context) {
 	// Parse due date if provided
 	var dueDate *time.Time
 	if req.DueDate != "" {
-		parsedDate, err := time.Parse(time.RFC3339, req.DueDate)
+		// Try different date formats
+		var parsedDate time.Time
+		var err error
+
+		// First try RFC3339 format (ISO 8601)
+		parsedDate, err = time.Parse(time.RFC3339, req.DueDate)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid due date format"})
-			return
+			// Try datetime-local format (YYYY-MM-DDTHH:MM) - assume local timezone
+			parsedDate, err = time.ParseInLocation("2006-01-02T15:04", req.DueDate, time.Local)
+			if err != nil {
+				// Try date only format - assume local timezone, end of day
+				parsedDate, err = time.ParseInLocation("2006-01-02", req.DueDate, time.Local)
+				if err != nil {
+					println("Due date parsing failed for:", req.DueDate)
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid due date format. Expected YYYY-MM-DD or YYYY-MM-DDTHH:MM"})
+					return
+				}
+				// If it's just a date, set it to end of day (23:59:59)
+				parsedDate = time.Date(parsedDate.Year(), parsedDate.Month(), parsedDate.Day(), 23, 59, 59, 0, parsedDate.Location())
+			}
 		}
 		dueDate = &parsedDate
 	}

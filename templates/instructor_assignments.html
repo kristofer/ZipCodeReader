@@ -263,7 +263,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load dashboard statistics
     function loadDashboardStats() {
         fetch('/instructor/dashboard/stats')
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 document.getElementById('totalAssignments').textContent = data.total_assignments || 0;
                 document.getElementById('activeStudents').textContent = data.active_students || 0;
@@ -275,13 +280,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     renderStudents(data.students);
                 }
             })
-            .catch(error => console.error('Error loading dashboard stats:', error));
+            .catch(error => {
+                console.error('Error loading dashboard stats:', error);
+                // Show error in UI
+                document.getElementById('totalAssignments').textContent = 'Error';
+                document.getElementById('activeStudents').textContent = 'Error';
+                document.getElementById('completionRate').textContent = 'Error';
+                document.getElementById('overdueCount').textContent = 'Error';
+            });
     }
 
     // Load students
     function loadStudents() {
         fetch('/instructor/dashboard/stats')
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.students) {
                     renderStudents(data.students);
@@ -296,6 +313,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Render students
     function renderStudents(students) {
         const studentsList = document.getElementById('studentsList');
+        
+        if (!studentsList) {
+            console.error('studentsList element not found');
+            return;
+        }
         
         if (students.length === 0) {
             studentsList.innerHTML = '<div class="px-6 py-4 text-center text-gray-500">No students found</div>';
@@ -347,7 +369,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (sort) params.append('sort', sort);
 
         fetch(url + params.toString())
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 renderAssignments(data.assignments || []);
             })
@@ -360,6 +387,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Render assignments
     function renderAssignments(assignments) {
         const assignmentsList = document.getElementById('assignmentsList');
+        
+        if (!assignmentsList) {
+            console.error('assignmentsList element not found');
+            return;
+        }
         
         if (assignments.length === 0) {
             assignmentsList.innerHTML = '<div class="px-6 py-4 text-center text-gray-500">No assignments found</div>';
@@ -396,10 +428,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const assignmentData = {
             title: formData.get('title'),
             description: formData.get('description'),
-            reading_url: formData.get('reading_url'),
+            url: formData.get('reading_url'),
             category: formData.get('category'),
             due_date: formData.get('due_date') || null
         };
+
+        // Debug: Log the data being sent
+        console.log('Assignment data being sent:', assignmentData);
 
         fetch('/instructor/assignments', {
             method: 'POST',
@@ -408,9 +443,14 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify(assignmentData)
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
-            if (data.id) {
+            if (data.assignment && data.assignment.id) {
                 createAssignmentModal.classList.add('hidden');
                 createAssignmentForm.reset();
                 loadAssignments();
@@ -422,7 +462,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('Error creating assignment:', error);
-            alert('Error creating assignment');
+            alert('Error creating assignment: ' + error.message);
         });
     }
 

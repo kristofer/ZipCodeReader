@@ -245,7 +245,8 @@ func main() {
 				// Due date notification routes for students
 				studentGroup.GET("/due-dates/alerts", dueDateNotificationHandlers.GetStudentDueDateAlerts)
 				studentGroup.GET("/due-dates/summary", dueDateNotificationHandlers.GetStudentDueDateSummary)
-				studentGroup.GET("/due-dates/notifications", dueDateNotificationHandlers.GetDueDateNotifications)			}
+				studentGroup.GET("/due-dates/notifications", dueDateNotificationHandlers.GetDueDateNotifications)
+			}
 		}
 	}
 
@@ -256,7 +257,7 @@ func main() {
 	r.GET("/", func(c *gin.Context) {
 		session := sessions.Default(c)
 		userID := session.Get("user_id")
-		
+
 		if userID != nil {
 			// User is logged in, get user info
 			user, err := models.GetUserByID(db, userID.(uint))
@@ -269,7 +270,7 @@ func main() {
 				return
 			}
 		}
-		
+
 		// User not logged in, show normal home page
 		c.HTML(http.StatusOK, "index.html", gin.H{
 			"title":          "ZipCodeReader",

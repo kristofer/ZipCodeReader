@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"strings"
 	"zipcodereader/models"
 
 	"github.com/gin-contrib/sessions"
@@ -33,6 +34,31 @@ func CORS() gin.HandlerFunc {
 	}
 }
 
+// isAPIRequest checks if the request is likely an API/AJAX request
+func isAPIRequest(c *gin.Context) bool {
+	// Check for common API request indicators
+	accept := c.GetHeader("Accept")
+	xRequestedWith := c.GetHeader("X-Requested-With")
+	contentType := c.GetHeader("Content-Type")
+
+	// If request explicitly asks for JSON or is XMLHttpRequest
+	if strings.Contains(accept, "application/json") || xRequestedWith == "XMLHttpRequest" {
+		return true
+	}
+
+	// If it's a JSON content type (for POST/PUT requests)
+	if strings.Contains(contentType, "application/json") {
+		return true
+	}
+
+	// Check if the URL path suggests it's an API endpoint
+	path := c.Request.URL.Path
+	return strings.Contains(path, "/api/") ||
+		strings.Contains(path, "/stats") ||
+		strings.HasSuffix(path, "/assignments") ||
+		strings.Contains(path, "/assignments/")
+}
+
 // RequireAuth middleware ensures user is authenticated
 func RequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -40,7 +66,12 @@ func RequireAuth() gin.HandlerFunc {
 		userID := session.Get("user_id")
 
 		if userID == nil {
-			c.Redirect(http.StatusTemporaryRedirect, "/")
+			// Check if this is an API request (AJAX/fetch)
+			if isAPIRequest(c) {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+			} else {
+				c.Redirect(http.StatusTemporaryRedirect, "/")
+			}
 			c.Abort()
 			return
 		}
@@ -59,7 +90,12 @@ func RequireAuthWithUser(db *gorm.DB) gin.HandlerFunc {
 		userID := session.Get("user_id")
 
 		if userID == nil {
-			c.Redirect(http.StatusTemporaryRedirect, "/")
+			// Check if this is an API request (AJAX/fetch)
+			if isAPIRequest(c) {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+			} else {
+				c.Redirect(http.StatusTemporaryRedirect, "/")
+			}
 			c.Abort()
 			return
 		}
