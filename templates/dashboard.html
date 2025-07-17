@@ -1,0 +1,129 @@
+{{define "content"}}
+<div class="max-w-6xl mx-auto">
+    <!-- Welcome Header -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <img src="{{.user.AvatarURL}}" alt="Avatar" class="w-12 h-12 rounded-full">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">Welcome, {{.user.Username}}!</h1>
+                    <p class="text-gray-600 capitalize">{{.user.Role}}</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-sm text-gray-500">
+                    {{if eq .user.Role "instructor"}}
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                            Instructor
+                        </span>
+                    {{else}}
+                        <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                            Student
+                        </span>
+                    {{end}}
+                </span>
+                <a href="/auth/logout" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">
+                    Logout
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {{if eq .user.Role "instructor"}}
+            <!-- Instructor Dashboard -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Create Assignment</h2>
+                <p class="text-gray-600 mb-4">Create new reading assignments for your students.</p>
+                <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg w-full">
+                    Create New Assignment
+                </button>
+                <p class="text-sm text-gray-500 mt-2">Available in Phase 3</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">My Assignments</h2>
+                <p class="text-gray-600 mb-4">View and manage your created assignments.</p>
+                <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg w-full">
+                    View Assignments
+                </button>
+                <p class="text-sm text-gray-500 mt-2">Available in Phase 3</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Student Progress</h2>
+                <p class="text-gray-600 mb-4">Track how your students are progressing.</p>
+                <button class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg w-full">
+                    View Progress
+                </button>
+                <p class="text-sm text-gray-500 mt-2">Available in Phase 4</p>
+            </div>
+        {{else}}
+            <!-- Student Dashboard -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">My Assignments</h2>
+                <p class="text-gray-600 mb-4">View your assigned readings and track progress.</p>
+                <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg w-full">
+                    View Assignments
+                </button>
+                <p class="text-sm text-gray-500 mt-2">Available in Phase 3</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Reading Progress</h2>
+                <p class="text-gray-600 mb-4">Track your reading completion and history.</p>
+                <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg w-full">
+                    View Progress
+                </button>
+                <p class="text-sm text-gray-500 mt-2">Available in Phase 4</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Reading History</h2>
+                <p class="text-gray-600 mb-4">See all your completed assignments.</p>
+                <button class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg w-full">
+                    View History
+                </button>
+                <p class="text-sm text-gray-500 mt-2">Available in Phase 4</p>
+            </div>
+        {{end}}
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="mt-8 bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Quick Stats</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="text-center">
+                <div class="text-2xl font-bold text-blue-600">0</div>
+                <div class="text-sm text-gray-600">
+                    {{if eq .user.Role "instructor"}}Assignments Created{{else}}Assignments Assigned{{end}}
+                </div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl font-bold text-green-600">0</div>
+                <div class="text-sm text-gray-600">
+                    {{if eq .user.Role "instructor"}}Students{{else}}Completed{{end}}
+                </div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl font-bold text-purple-600">0</div>
+                <div class="text-sm text-gray-600">
+                    {{if eq .user.Role "instructor"}}Total Views{{else}}In Progress{{end}}
+                </div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl font-bold text-red-600">0</div>
+                <div class="text-sm text-gray-600">
+                    {{if eq .user.Role "instructor"}}Categories{{else}}Overdue{{end}}
+                </div>
+            </div>
+        </div>
+        <p class="text-sm text-gray-500 mt-4 text-center">
+            Statistics will be populated as features are implemented
+        </p>
+    </div>
+</div>
+{{end}}
+
+{{template "base.html" .}}
