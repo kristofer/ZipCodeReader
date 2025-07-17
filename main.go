@@ -57,10 +57,14 @@ func main() {
 	// Initialize assignment services
 	assignmentService := services.NewAssignmentService(db)
 	studentAssignmentService := services.NewStudentAssignmentService(db)
+	progressTrackingService := services.NewProgressTrackingService(db)
+	dueDateNotificationService := services.NewDueDateNotificationService(db)
 
 	// Initialize assignment handlers
 	instructorAssignmentHandlers := handlers.NewInstructorAssignmentHandlers(assignmentService)
 	studentAssignmentHandlers := handlers.NewStudentAssignmentHandlers(studentAssignmentService)
+	progressTrackingHandlers := handlers.NewProgressTrackingHandlers(progressTrackingService)
+	dueDateNotificationHandlers := handlers.NewDueDateNotificationHandlers(dueDateNotificationService)
 
 	// Setup authentication routes based on mode
 	if cfg.UseLocalAuth {
@@ -106,6 +110,16 @@ func main() {
 				instructorGroup.POST("/assignments/:id/students/:student_id/remove", instructorAssignmentHandlers.RemoveStudent)
 				instructorGroup.GET("/students", instructorAssignmentHandlers.GetAllStudents)
 				instructorGroup.GET("/dashboard/stats", instructorAssignmentHandlers.GetDashboardStats)
+
+				// Advanced progress tracking routes
+				instructorGroup.GET("/assignments/:id/detailed-progress", progressTrackingHandlers.GetDetailedProgressReport)
+				instructorGroup.GET("/progress/summary", progressTrackingHandlers.GetInstructorProgressSummary)
+				instructorGroup.GET("/progress/trends", progressTrackingHandlers.GetProgressTrends)
+				instructorGroup.GET("/progress/completion-analytics", progressTrackingHandlers.GetCompletionAnalytics)
+
+				// Due date notification routes for instructors
+				instructorGroup.GET("/due-dates/overview", dueDateNotificationHandlers.GetInstructorDueDateOverview)
+				instructorGroup.GET("/due-dates/notifications", dueDateNotificationHandlers.GetDueDateNotifications)
 			}
 
 			// Student assignment routes
@@ -125,6 +139,11 @@ func main() {
 				studentGroup.GET("/assignments/by-status", studentAssignmentHandlers.GetAssignmentsByStatus)
 				studentGroup.GET("/assignments/by-category", studentAssignmentHandlers.GetAssignmentsByCategory)
 				studentGroup.GET("/assignments/search", studentAssignmentHandlers.SearchAssignments)
+
+				// Due date notification routes for students
+				studentGroup.GET("/due-dates/alerts", dueDateNotificationHandlers.GetStudentDueDateAlerts)
+				studentGroup.GET("/due-dates/summary", dueDateNotificationHandlers.GetStudentDueDateSummary)
+				studentGroup.GET("/due-dates/notifications", dueDateNotificationHandlers.GetDueDateNotifications)
 			}
 		}
 
@@ -167,6 +186,16 @@ func main() {
 				instructorGroup.POST("/assignments/:id/students/:student_id/remove", instructorAssignmentHandlers.RemoveStudent)
 				instructorGroup.GET("/students", instructorAssignmentHandlers.GetAllStudents)
 				instructorGroup.GET("/dashboard/stats", instructorAssignmentHandlers.GetDashboardStats)
+
+				// Advanced progress tracking routes
+				instructorGroup.GET("/assignments/:id/detailed-progress", progressTrackingHandlers.GetDetailedProgressReport)
+				instructorGroup.GET("/progress/summary", progressTrackingHandlers.GetInstructorProgressSummary)
+				instructorGroup.GET("/progress/trends", progressTrackingHandlers.GetProgressTrends)
+				instructorGroup.GET("/progress/completion-analytics", progressTrackingHandlers.GetCompletionAnalytics)
+
+				// Due date notification routes for instructors
+				instructorGroup.GET("/due-dates/overview", dueDateNotificationHandlers.GetInstructorDueDateOverview)
+				instructorGroup.GET("/due-dates/notifications", dueDateNotificationHandlers.GetDueDateNotifications)
 			}
 
 			// Student assignment routes
@@ -186,6 +215,11 @@ func main() {
 				studentGroup.GET("/assignments/by-status", studentAssignmentHandlers.GetAssignmentsByStatus)
 				studentGroup.GET("/assignments/by-category", studentAssignmentHandlers.GetAssignmentsByCategory)
 				studentGroup.GET("/assignments/search", studentAssignmentHandlers.SearchAssignments)
+
+				// Due date notification routes for students
+				studentGroup.GET("/due-dates/alerts", dueDateNotificationHandlers.GetStudentDueDateAlerts)
+				studentGroup.GET("/due-dates/summary", dueDateNotificationHandlers.GetStudentDueDateSummary)
+				studentGroup.GET("/due-dates/notifications", dueDateNotificationHandlers.GetDueDateNotifications)
 			}
 		}
 
