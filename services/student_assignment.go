@@ -136,11 +136,10 @@ func (s *StudentAssignmentService) GetDashboardStats(studentID uint) (map[string
 	}
 
 	stats := map[string]int{
-		"total":       0,
-		"assigned":    0,
-		"in_progress": 0,
-		"completed":   0,
-		"overdue":     0,
+		"total_assignments":       0,
+		"completed_assignments":   0,
+		"in_progress_assignments": 0,
+		"overdue_assignments":     0,
 	}
 
 	// Get all assignments
@@ -149,11 +148,16 @@ func (s *StudentAssignmentService) GetDashboardStats(studentID uint) (map[string
 		return nil, err
 	}
 
-	stats["total"] = len(assignments)
+	stats["total_assignments"] = len(assignments)
 
 	// Count by status
 	for _, assignment := range assignments {
-		stats[assignment.Status]++
+		switch assignment.Status {
+		case models.StatusCompleted:
+			stats["completed_assignments"]++
+		case models.StatusInProgress:
+			stats["in_progress_assignments"]++
+		}
 	}
 
 	// Count overdue assignments
@@ -162,7 +166,7 @@ func (s *StudentAssignmentService) GetDashboardStats(studentID uint) (map[string
 		return nil, err
 	}
 
-	stats["overdue"] = len(overdueAssignments)
+	stats["overdue_assignments"] = len(overdueAssignments)
 
 	return stats, nil
 }

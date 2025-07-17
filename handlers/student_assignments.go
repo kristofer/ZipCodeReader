@@ -260,9 +260,7 @@ func (h *StudentAssignmentHandlers) GetDashboardStats(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"stats": stats,
-	})
+	c.JSON(http.StatusOK, stats)
 }
 
 // GetOverdueAssignments handles GET /student/assignments/overdue

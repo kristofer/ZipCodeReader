@@ -228,6 +228,69 @@
     </div>
 </div>
 
+<!-- Assign Students Modal -->
+<div id="assignStudentsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl w-4/5 max-w-4xl h-4/5 max-h-screen mx-4 my-8 flex flex-col">
+        <div class="px-6 py-4 border-b border-gray-200 flex-shrink-0">
+            <h3 class="text-lg font-medium text-gray-900">Assign Students to Assignment</h3>
+        </div>
+        <div class="p-6 flex-1 overflow-y-auto">
+            <!-- Assignment details -->
+            <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                <h4 class="font-medium text-gray-900 mb-2">Assignment Details</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="font-medium text-gray-700">Title:</span>
+                        <span id="assignModalTitle" class="text-gray-600 ml-2">Loading...</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-700">Category:</span>
+                        <span id="assignModalCategory" class="text-gray-600 ml-2">Loading...</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-700">Due Date:</span>
+                        <span id="assignModalDueDate" class="text-gray-600 ml-2">Loading...</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-700">Already Assigned:</span>
+                        <span id="assignModalAssignedCount" class="text-gray-600 ml-2">Loading...</span>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <span class="font-medium text-gray-700">Description:</span>
+                    <p id="assignModalDescription" class="text-gray-600 mt-1">Loading...</p>
+                </div>
+            </div>
+            
+            <p class="mb-4 text-gray-600">Select students to assign this reading to:</p>
+            
+            <!-- Search and filter -->
+            <div class="mb-4">
+                <input type="text" id="studentSearchInput" placeholder="Search students..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <!-- Students list -->
+            <div class="flex-1 overflow-y-auto border border-gray-200 rounded-lg min-h-0">
+                <div id="assignStudentsList" class="divide-y divide-gray-200">
+                    <!-- Students will be populated here -->
+                    <div class="p-4 text-center text-gray-500">Loading students...</div>
+                </div>
+            </div>
+            
+            <!-- Selected counter -->
+            <div class="mt-4 text-sm text-gray-600">
+                <span id="selectedCount">0</span> students selected
+            </div>
+            
+            <!-- Action buttons -->
+            <div class="mt-6 flex justify-end space-x-3 flex-shrink-0">
+                <button id="cancelAssignBtn" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">Cancel</button>
+                <button id="confirmAssignBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Assign Selected Students</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 // Instructor Assignment Dashboard JavaScript
 document.addEventListener('DOMContentLoaded', function() {
@@ -240,6 +303,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const categoryFilter = document.getElementById('categoryFilter');
     const statusFilter = document.getElementById('statusFilter');
     const sortBy = document.getElementById('sortBy');
+    const assignStudentsModal = document.getElementById('assignStudentsModal');
+    const studentSearchInput = document.getElementById('studentSearchInput');
+    const cancelAssignBtn = document.getElementById('cancelAssignBtn');
+    const confirmAssignBtn = document.getElementById('confirmAssignBtn');
+    const selectedCount = document.getElementById('selectedCount');
 
     // Load initial data
     loadDashboardStats();
@@ -265,6 +333,22 @@ document.addEventListener('DOMContentLoaded', function() {
     categoryFilter.addEventListener('change', loadAssignments);
     statusFilter.addEventListener('change', loadAssignments);
     sortBy.addEventListener('change', loadAssignments);
+
+    // Assign Students Modal
+    let selectedStudents = new Set();
+
+    studentSearchInput.addEventListener('input', debounce(filterStudents, 300));
+
+    cancelAssignBtn.addEventListener('click', () => {
+        assignStudentsModal.classList.add('hidden');
+        selectedStudents.clear();
+        updateSelectedCount();
+    });
+
+    confirmAssignBtn.addEventListener('click', () => {
+        // TODO: Implement assign students functionality
+        alert('Assign students functionality coming soon!');
+    });
 
     // Load dashboard statistics
     function loadDashboardStats() {
@@ -472,6 +556,26 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Filter students
+    function filterStudents() {
+        const searchTerm = studentSearchInput.value.toLowerCase();
+        const allStudents = Array.from(document.querySelectorAll('#studentsList .px-6'));
+        
+        allStudents.forEach(studentEl => {
+            const studentName = studentEl.querySelector('.text-sm.font-medium.text-gray-900').textContent.toLowerCase();
+            if (studentName.includes(searchTerm)) {
+                studentEl.classList.remove('hidden');
+            } else {
+                studentEl.classList.add('hidden');
+            }
+        });
+    }
+
+    // Update selected count
+    function updateSelectedCount() {
+        selectedCount.textContent = selectedStudents.size;
+    }
+
     // Utility functions
     function debounce(func, wait) {
         let timeout;
@@ -514,8 +618,244 @@ function editAssignment(id) {
 }
 
 function assignStudents(id) {
-    // TODO: Implement assign students functionality
-    alert('Assign students functionality coming soon!');
+    // Open the assign students modal
+    const assignStudentsModal = document.getElementById('assignStudentsModal');
+    const assignStudentsList = document.getElementById('assignStudentsList');
+    const studentSearchInput = document.getElementById('studentSearchInput');
+    const selectedCount = document.getElementById('selectedCount');
+    const confirmAssignBtn = document.getElementById('confirmAssignBtn');
+    const cancelAssignBtn = document.getElementById('cancelAssignBtn');
+    
+    // Clear previous state
+    assignStudentsList.innerHTML = '<div class="p-4 text-center text-gray-500">Loading students...</div>';
+    studentSearchInput.value = '';
+    selectedCount.textContent = '0';
+    
+    // Store the assignment ID and selected student IDs
+    const assignmentData = {
+        assignmentId: id,
+        selectedStudentIds: [],
+        assignment: null,
+        allStudents: [],
+        assignedStudents: []
+    };
+    
+    // Show the modal
+    assignStudentsModal.classList.remove('hidden');
+    
+    // Load assignment details first
+    loadAssignmentDetails(id);
+    
+    // Event listeners
+    const handleSearch = () => filterStudents();
+    const handleCancel = () => closeAssignModal();
+    const handleConfirm = () => submitAssignStudents(assignmentData);
+    
+    studentSearchInput.addEventListener('input', handleSearch);
+    cancelAssignBtn.addEventListener('click', handleCancel);
+    confirmAssignBtn.addEventListener('click', handleConfirm);
+    
+    // Load assignment details
+    function loadAssignmentDetails(assignmentId) {
+        fetch(`/instructor/assignments/${assignmentId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                assignmentData.assignment = data.assignment;
+                renderAssignmentDetails(data.assignment);
+                
+                // After loading assignment details, load students
+                loadAllStudents();
+                loadAssignedStudents(assignmentId);
+            })
+            .catch(error => {
+                console.error('Error loading assignment details:', error);
+                document.getElementById('assignModalTitle').textContent = 'Error loading assignment';
+            });
+    }
+    
+    // Render assignment details in modal
+    function renderAssignmentDetails(assignment) {
+        document.getElementById('assignModalTitle').textContent = assignment.title || 'Untitled Assignment';
+        document.getElementById('assignModalCategory').textContent = assignment.category || 'No category';
+        document.getElementById('assignModalDueDate').textContent = assignment.due_date ? 
+            new Date(assignment.due_date).toLocaleDateString() : 'No due date';
+        document.getElementById('assignModalDescription').textContent = assignment.description || 'No description provided';
+    }
+    
+    // Load all students
+    function loadAllStudents() {
+        fetch('/instructor/students')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                assignmentData.allStudents = data.students || [];
+                renderStudentsList(assignmentData.allStudents);
+            })
+            .catch(error => {
+                console.error('Error loading students:', error);
+                assignStudentsList.innerHTML = '<div class="p-4 text-center text-red-500">Error loading students</div>';
+            });
+    }
+    
+    // Load students already assigned to this assignment
+    function loadAssignedStudents(assignmentId) {
+        fetch(`/instructor/assignments/${assignmentId}/students`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                assignmentData.assignedStudents = data.students || [];
+                
+                // Update the assigned count in the modal
+                document.getElementById('assignModalAssignedCount').textContent = `${assignmentData.assignedStudents.length} students`;
+                
+                // Pre-select assigned students
+                assignmentData.assignedStudents.forEach(studentAssignment => {
+                    const studentId = studentAssignment.student_id;
+                    if (!assignmentData.selectedStudentIds.includes(studentId)) {
+                        assignmentData.selectedStudentIds.push(studentId);
+                    }
+                });
+                
+                // Update UI for pre-selected students
+                updateStudentSelections();
+                
+                // Update selected count
+                selectedCount.textContent = assignmentData.selectedStudentIds.length;
+            })
+            .catch(error => {
+                console.error('Error loading assigned students:', error);
+                document.getElementById('assignModalAssignedCount').textContent = 'Error loading count';
+            });
+    }
+    
+    // Update student selections in UI
+    function updateStudentSelections() {
+        assignmentData.selectedStudentIds.forEach(studentId => {
+            const checkbox = document.getElementById(`student-${studentId}`);
+            if (checkbox) {
+                checkbox.checked = true;
+            }
+        });
+    }
+    
+    // Render the students list
+    function renderStudentsList(students) {
+        if (!students || students.length === 0) {
+            assignStudentsList.innerHTML = '<div class="p-4 text-center text-gray-500">No students found</div>';
+            return;
+        }
+        
+        assignStudentsList.innerHTML = students.map(student => `
+            <div class="p-4 hover:bg-gray-50 student-item">
+                <label class="flex items-center space-x-3">
+                    <input type="checkbox" id="student-${student.id}" value="${student.id}" 
+                           class="student-checkbox w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                           data-student-id="${student.id}" data-student-name="${student.username}">
+                    <div class="flex-1">
+                        <div class="text-sm font-medium text-gray-900">${student.username}</div>
+                        <div class="text-sm text-gray-500">${student.email || 'No email'}</div>
+                    </div>
+                </label>
+            </div>
+        `).join('');
+        
+        // Add event listeners to checkboxes
+        const checkboxes = document.querySelectorAll('.student-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const studentId = parseInt(this.dataset.studentId);
+                
+                if (this.checked) {
+                    if (!assignmentData.selectedStudentIds.includes(studentId)) {
+                        assignmentData.selectedStudentIds.push(studentId);
+                    }
+                } else {
+                    const index = assignmentData.selectedStudentIds.indexOf(studentId);
+                    if (index !== -1) {
+                        assignmentData.selectedStudentIds.splice(index, 1);
+                    }
+                }
+                
+                // Update selected count
+                selectedCount.textContent = assignmentData.selectedStudentIds.length;
+            });
+        });
+        
+        // Pre-select students that were already assigned
+        updateStudentSelections();
+    }
+    
+    // Filter students based on search input
+    function filterStudents() {
+        const searchTerm = studentSearchInput.value.toLowerCase();
+        const studentItems = document.querySelectorAll('.student-item');
+        
+        studentItems.forEach(item => {
+            const checkbox = item.querySelector('.student-checkbox');
+            const studentName = checkbox.dataset.studentName.toLowerCase();
+            
+            if (studentName.includes(searchTerm)) {
+                item.classList.remove('hidden');
+            } else {
+                item.classList.add('hidden');
+            }
+        });
+    }
+    
+    // Close the modal
+    function closeAssignModal() {
+        assignStudentsModal.classList.add('hidden');
+        // Remove event listeners
+        studentSearchInput.removeEventListener('input', handleSearch);
+        cancelAssignBtn.removeEventListener('click', handleCancel);
+        confirmAssignBtn.removeEventListener('click', handleConfirm);
+    }
+    
+    // Submit student assignments
+    function submitAssignStudents(data) {
+        if (data.selectedStudentIds.length === 0) {
+            alert('Please select at least one student.');
+            return;
+        }
+        
+        fetch(`/instructor/assignments/${data.assignmentId}/assign`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                student_ids: data.selectedStudentIds
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            closeAssignModal();
+            alert('Students assigned successfully!');
+            loadAssignments(); // Refresh the assignments list
+        })
+        .catch(error => {
+            console.error('Error assigning students:', error);
+            alert('Error assigning students: ' + error.message);
+        });
+    }
 }
 
 function deleteAssignment(id) {
