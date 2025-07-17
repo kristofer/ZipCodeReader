@@ -114,6 +114,7 @@ func main() {
 			{
 				// Dashboard routes
 				instructorGroup.GET("/dashboard", dashboardHandlers.ShowInstructorDashboard)
+				instructorGroup.GET("/assignments/manage", dashboardHandlers.ShowAssignmentManagement)
 				instructorGroup.GET("/assignments/:id/detail", dashboardHandlers.ShowAssignmentDetail)
 				instructorGroup.GET("/assignments/:id/progress-view", dashboardHandlers.ShowAssignmentProgress)
 
@@ -194,6 +195,7 @@ func main() {
 			{
 				// Dashboard routes
 				instructorGroup.GET("/dashboard", dashboardHandlers.ShowInstructorDashboard)
+				instructorGroup.GET("/assignments/manage", dashboardHandlers.ShowAssignmentManagement)
 				instructorGroup.GET("/assignments/:id/detail", dashboardHandlers.ShowAssignmentDetail)
 				instructorGroup.GET("/assignments/:id/progress-view", dashboardHandlers.ShowAssignmentProgress)
 				instructorGroup.GET("/assignments", instructorAssignmentHandlers.GetAssignments)

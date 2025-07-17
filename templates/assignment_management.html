@@ -1,0 +1,548 @@
+{{template "base.html" .}}
+
+{{define "instructor_content"}}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Page Header -->
+    <div class="mb-8 flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Assignment Management</h1>
+            <p class="mt-2 text-gray-600">Create, edit, and manage assignments for your students</p>
+        </div>
+        <div class="flex gap-4">
+            <button id="createAssignmentBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Create Assignment
+            </button>
+            <button id="refreshBtn" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Assignment Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Total Assignments</dt>
+                        <dd class="text-lg font-medium text-gray-900" id="totalAssignments">-</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Active Assignments</dt>
+                        <dd class="text-lg font-medium text-gray-900" id="activeAssignments">-</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Due Soon</dt>
+                        <dd class="text-lg font-medium text-gray-900" id="dueSoonAssignments">-</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Total Students</dt>
+                        <dd class="text-lg font-medium text-gray-900" id="totalStudents">-</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Controls -->
+    <div class="bg-white rounded-lg shadow mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex flex-wrap gap-4">
+                <div class="flex-1 min-w-0">
+                    <input type="text" id="searchInput" placeholder="Search assignments..." class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex gap-2">
+                    <select id="categoryFilter" class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Categories</option>
+                        <option value="reading">Reading</option>
+                        <option value="exercise">Exercise</option>
+                        <option value="project">Project</option>
+                        <option value="quiz">Quiz</option>
+                    </select>
+                    <select id="statusFilter" class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Statuses</option>
+                        <option value="active">Active</option>
+                        <option value="draft">Draft</option>
+                        <option value="archived">Archived</option>
+                    </select>
+                    <select id="sortBy" class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="created_at">Date Created</option>
+                        <option value="due_date">Due Date</option>
+                        <option value="title">Title</option>
+                        <option value="category">Category</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignments Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6" id="assignmentsGrid">
+        <!-- Assignment cards will be loaded here -->
+        <div class="col-span-full flex justify-center items-center py-12">
+            <div class="text-center">
+                <svg class="animate-spin h-8 w-8 mx-auto mb-4 text-gray-400" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="text-gray-500">Loading assignments...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Assignment Modal -->
+<div id="createAssignmentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Create New Assignment</h3>
+        </div>
+        <form id="createAssignmentForm" class="px-6 py-4">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+                <input type="text" name="title" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <textarea name="description" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Reading URL *</label>
+                <input type="url" name="reading_url" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                    <select name="category" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select category</option>
+                        <option value="reading">Reading</option>
+                        <option value="exercise">Exercise</option>
+                        <option value="project">Project</option>
+                        <option value="quiz">Quiz</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                    <input type="datetime-local" name="due_date" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button type="button" onclick="closeCreateModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Create Assignment</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Assignment Modal -->
+<div id="editAssignmentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Edit Assignment</h3>
+        </div>
+        <form id="editAssignmentForm" class="px-6 py-4">
+            <input type="hidden" id="editAssignmentId" name="assignment_id">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+                <input type="text" id="editTitle" name="title" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <textarea id="editDescription" name="description" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Reading URL *</label>
+                <input type="url" id="editUrl" name="reading_url" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                    <select id="editCategory" name="category" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select category</option>
+                        <option value="reading">Reading</option>
+                        <option value="exercise">Exercise</option>
+                        <option value="project">Project</option>
+                        <option value="quiz">Quiz</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                    <input type="datetime-local" id="editDueDate" name="due_date" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button type="button" onclick="closeEditModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Update Assignment</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // DOM elements
+    const searchInput = document.getElementById('searchInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const sortBy = document.getElementById('sortBy');
+    const createAssignmentBtn = document.getElementById('createAssignmentBtn');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const createAssignmentModal = document.getElementById('createAssignmentModal');
+    const createAssignmentForm = document.getElementById('createAssignmentForm');
+    const editAssignmentForm = document.getElementById('editAssignmentForm');
+
+    // Initialize
+    loadAssignments();
+    loadDashboardStats();
+
+    // Event listeners
+    createAssignmentBtn.addEventListener('click', () => {
+        createAssignmentModal.classList.remove('hidden');
+    });
+
+    refreshBtn.addEventListener('click', () => {
+        loadAssignments();
+        loadDashboardStats();
+    });
+
+    createAssignmentForm.addEventListener('submit', createAssignment);
+    editAssignmentForm.addEventListener('submit', updateAssignment);
+
+    // Search and filter listeners
+    searchInput.addEventListener('input', debounce(loadAssignments, 300));
+    categoryFilter.addEventListener('change', loadAssignments);
+    statusFilter.addEventListener('change', loadAssignments);
+    sortBy.addEventListener('change', loadAssignments);
+
+    // Load assignments with filters
+    function loadAssignments() {
+        const searchTerm = searchInput.value;
+        const category = categoryFilter.value;
+        const status = statusFilter.value;
+        const sort = sortBy.value;
+
+        let url = '/instructor/assignments?';
+        const params = new URLSearchParams();
+        
+        if (searchTerm) params.append('search', searchTerm);
+        if (category) params.append('category', category);
+        if (status) params.append('status', status);
+        if (sort) params.append('sort', sort);
+
+        fetch(url + params.toString())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                renderAssignments(data.assignments || []);
+            })
+            .catch(error => {
+                console.error('Error loading assignments:', error);
+                showError('Error loading assignments');
+            });
+    }
+
+    // Render assignments in grid format
+    function renderAssignments(assignments) {
+        const grid = document.getElementById('assignmentsGrid');
+        
+        if (assignments.length === 0) {
+            grid.innerHTML = `
+                <div class="col-span-full text-center py-12">
+                    <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <p class="text-gray-500 text-lg">No assignments found</p>
+                    <p class="text-gray-400">Create your first assignment to get started</p>
+                </div>
+            `;
+            return;
+        }
+
+        grid.innerHTML = assignments.map(assignment => `
+            <div class="bg-white rounded-lg shadow hover:shadow-md transition-shadow duration-200">
+                <div class="p-6">
+                    <div class="flex items-start justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900 truncate">${assignment.title}</h3>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            ${assignment.category || 'General'}
+                        </span>
+                    </div>
+                    
+                    <p class="text-gray-600 text-sm mb-4 line-clamp-3">${assignment.description || 'No description'}</p>
+                    
+                    <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
+                        <span>Created: ${new Date(assignment.created_at).toLocaleDateString()}</span>
+                        ${assignment.due_date ? `<span class="text-orange-600">Due: ${new Date(assignment.due_date).toLocaleDateString()}</span>` : ''}
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <div class="flex space-x-2">
+                            <button onclick="viewAssignment(${assignment.id})" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View</button>
+                            <button onclick="editAssignment(${assignment.id})" class="text-gray-600 hover:text-gray-800 text-sm font-medium">Edit</button>
+                            <button onclick="deleteAssignment(${assignment.id})" class="text-red-600 hover:text-red-800 text-sm font-medium">Delete</button>
+                        </div>
+                        <button onclick="viewProgress(${assignment.id})" class="text-green-600 hover:text-green-800 text-sm font-medium">Progress</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Load dashboard statistics
+    function loadDashboardStats() {
+        fetch('/instructor/dashboard/stats')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('totalAssignments').textContent = data.total_assignments || 0;
+                document.getElementById('activeAssignments').textContent = data.active_assignments || 0;
+                document.getElementById('dueSoonAssignments').textContent = data.due_soon_assignments || 0;
+                document.getElementById('totalStudents').textContent = data.total_students || 0;
+            })
+            .catch(error => {
+                console.error('Error loading dashboard stats:', error);
+            });
+    }
+
+    // Create assignment
+    function createAssignment(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(e.target);
+        const assignmentData = {
+            title: formData.get('title'),
+            description: formData.get('description'),
+            url: formData.get('reading_url'),
+            category: formData.get('category'),
+            due_date: formData.get('due_date') || null
+        };
+
+        fetch('/instructor/assignments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(assignmentData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            closeCreateModal();
+            loadAssignments();
+            loadDashboardStats();
+            showSuccess('Assignment created successfully!');
+        })
+        .catch(error => {
+            console.error('Error creating assignment:', error);
+            showError('Error creating assignment: ' + error.message);
+        });
+    }
+
+    // Update assignment
+    function updateAssignment(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(e.target);
+        const assignmentId = formData.get('assignment_id');
+        const assignmentData = {
+            title: formData.get('title'),
+            description: formData.get('description'),
+            url: formData.get('reading_url'),
+            category: formData.get('category'),
+            due_date: formData.get('due_date') || null
+        };
+
+        fetch(`/instructor/assignments/${assignmentId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(assignmentData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            closeEditModal();
+            loadAssignments();
+            loadDashboardStats();
+            showSuccess('Assignment updated successfully!');
+        })
+        .catch(error => {
+            console.error('Error updating assignment:', error);
+            showError('Error updating assignment: ' + error.message);
+        });
+    }
+
+    // Utility functions
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    function showSuccess(message) {
+        alert(message); // TODO: Replace with better notification system
+    }
+
+    function showError(message) {
+        alert(message); // TODO: Replace with better notification system
+    }
+});
+
+// Global functions
+function closeCreateModal() {
+    document.getElementById('createAssignmentModal').classList.add('hidden');
+    document.getElementById('createAssignmentForm').reset();
+}
+
+function closeEditModal() {
+    document.getElementById('editAssignmentModal').classList.add('hidden');
+}
+
+function viewAssignment(id) {
+    window.location.href = `/instructor/assignments/${id}/detail`;
+}
+
+function editAssignment(id) {
+    fetch(`/instructor/assignments/${id}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.assignment) {
+                showEditModal(data.assignment);
+            } else {
+                alert('Error loading assignment data');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading assignment:', error);
+            alert('Error loading assignment data');
+        });
+}
+
+function showEditModal(assignment) {
+    // Populate form with existing data
+    document.getElementById('editAssignmentId').value = assignment.id;
+    document.getElementById('editTitle').value = assignment.title;
+    document.getElementById('editDescription').value = assignment.description || '';
+    document.getElementById('editUrl').value = assignment.url;
+    document.getElementById('editCategory').value = assignment.category || '';
+    
+    // Format due date for input
+    if (assignment.due_date) {
+        const dueDate = new Date(assignment.due_date);
+        const formattedDate = dueDate.toISOString().slice(0, 16);
+        document.getElementById('editDueDate').value = formattedDate;
+    } else {
+        document.getElementById('editDueDate').value = '';
+    }
+    
+    // Show modal
+    document.getElementById('editAssignmentModal').classList.remove('hidden');
+}
+
+function deleteAssignment(id) {
+    if (confirm('Are you sure you want to delete this assignment? This action cannot be undone.')) {
+        fetch(`/instructor/assignments/${id}`, {
+            method: 'DELETE',
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Reload assignments and stats
+            loadAssignments();
+            loadDashboardStats();
+            alert('Assignment deleted successfully!');
+        })
+        .catch(error => {
+            console.error('Error deleting assignment:', error);
+            alert('Error deleting assignment: ' + error.message);
+        });
+    }
+}
+
+function viewProgress(id) {
+    window.location.href = `/instructor/assignments/${id}/progress-view`;
+}
+</script>
+{{end}}

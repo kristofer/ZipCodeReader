@@ -164,3 +164,25 @@ func (h *DashboardHandlers) ShowAssignmentProgress(c *gin.Context) {
 		"use_local_auth": h.useLocalAuth,
 	})
 }
+
+// ShowAssignmentManagement renders the assignment management page with full CRUD functionality
+func (h *DashboardHandlers) ShowAssignmentManagement(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	userObj := user.(*models.User)
+	if !userObj.IsInstructor() {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
+		return
+	}
+
+	c.HTML(http.StatusOK, "assignment_management.html", gin.H{
+		"title":          "Assignment Management",
+		"user":           userObj,
+		"use_local_auth": h.useLocalAuth,
+		"template_type":  "instructor",
+	})
+}
