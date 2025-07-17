@@ -2,9 +2,11 @@ package middleware
 
 import (
 	"net/http"
+	"zipcodereader/models"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // Logger middleware for request logging
@@ -46,6 +48,34 @@ func RequireAuth() gin.HandlerFunc {
 		// Set user info in context for handlers to use
 		c.Set("user_id", userID)
 		c.Set("user_role", session.Get("user_role"))
+		c.Next()
+	}
+}
+
+// RequireAuthWithUser middleware ensures user is authenticated and loads user object
+func RequireAuthWithUser(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		session := sessions.Default(c)
+		userID := session.Get("user_id")
+
+		if userID == nil {
+			c.Redirect(http.StatusTemporaryRedirect, "/")
+			c.Abort()
+			return
+		}
+
+		// Get user from database
+		user, err := models.GetUserByID(db, userID.(uint))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "User not found"})
+			c.Abort()
+			return
+		}
+
+		// Set user info in context for handlers to use
+		c.Set("user", user)
+		c.Set("user_id", userID)
+		c.Set("user_role", user.Role)
 		c.Next()
 	}
 }

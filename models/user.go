@@ -99,16 +99,26 @@ func (u *User) IsLocalUser() bool {
 
 // CreateLocalUser creates a new user with local authentication
 func CreateLocalUser(db *gorm.DB, username, email, password string) (*User, error) {
+	return CreateLocalUserWithRole(db, username, email, password, "student")
+}
+
+// CreateLocalUserWithRole creates a new user with local authentication and specified role
+func CreateLocalUserWithRole(db *gorm.DB, username, email, password, role string) (*User, error) {
 	// Check if user already exists
 	var existingUser User
 	if err := db.Where("username = ?", username).First(&existingUser).Error; err == nil {
 		return nil, errors.New("user already exists")
 	}
 
+	// Validate role
+	if role != "student" && role != "instructor" {
+		role = "student" // Default to student if invalid role
+	}
+
 	user := &User{
 		Username: username,
 		Email:    email,
-		Role:     "student", // Default role
+		Role:     role,
 	}
 
 	// Set password

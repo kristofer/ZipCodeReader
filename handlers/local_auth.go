@@ -74,6 +74,7 @@ func (h *LocalAuthHandler) Register(c *gin.Context) {
 	email := c.PostForm("email")
 	password := c.PostForm("password")
 	confirmPassword := c.PostForm("confirm_password")
+	role := c.PostForm("role")
 
 	// Validation
 	if username == "" || email == "" || password == "" {
@@ -100,8 +101,8 @@ func (h *LocalAuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	// Create user
-	user, err := models.CreateLocalUser(h.db, username, email, password)
+	// Create user with specified role
+	user, err := models.CreateLocalUserWithRole(h.db, username, email, password, role)
 	if err != nil {
 		c.HTML(http.StatusConflict, "local_register.html", gin.H{
 			"title": "Register",

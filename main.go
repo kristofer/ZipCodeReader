@@ -8,7 +8,6 @@ import (
 	"zipcodereader/database"
 	"zipcodereader/handlers"
 	"zipcodereader/middleware"
-	"zipcodereader/models"
 	"zipcodereader/services"
 
 	"github.com/gin-contrib/sessions"
@@ -55,6 +54,14 @@ func main() {
 	// Initialize handlers
 	h := handlers.New(db)
 
+	// Initialize assignment services
+	assignmentService := services.NewAssignmentService(db)
+	studentAssignmentService := services.NewStudentAssignmentService(db)
+
+	// Initialize assignment handlers
+	instructorAssignmentHandlers := handlers.NewInstructorAssignmentHandlers(assignmentService)
+	studentAssignmentHandlers := handlers.NewStudentAssignmentHandlers(studentAssignmentService)
+
 	// Setup authentication routes based on mode
 	if cfg.UseLocalAuth {
 		log.Println("Using local authentication mode")
@@ -69,21 +76,12 @@ func main() {
 
 		// Dashboard route
 		protected := r.Group("/")
-		protected.Use(middleware.RequireAuth())
+		protected.Use(middleware.RequireAuthWithUser(db))
 		{
 			protected.GET("/dashboard", func(c *gin.Context) {
-				session := sessions.Default(c)
-				userID := session.Get("user_id")
-
-				if userID == nil {
-					c.Redirect(302, "/local/login")
-					return
-				}
-
-				// Get user information
-				user, err := models.GetUserByID(db, userID.(uint))
-				if err != nil {
-					c.JSON(500, gin.H{"error": "Failed to get user information"})
+				user, exists := c.Get("user")
+				if !exists {
+					c.JSON(500, gin.H{"error": "User not found"})
 					return
 				}
 
@@ -92,6 +90,42 @@ func main() {
 					"user":  user,
 				})
 			})
+
+			// Instructor assignment routes
+			instructorGroup := protected.Group("/instructor")
+			instructorGroup.Use(middleware.RequireRole("instructor"))
+			{
+				instructorGroup.GET("/assignments", instructorAssignmentHandlers.GetAssignments)
+				instructorGroup.POST("/assignments", instructorAssignmentHandlers.CreateAssignment)
+				instructorGroup.GET("/assignments/:id", instructorAssignmentHandlers.GetAssignment)
+				instructorGroup.PUT("/assignments/:id", instructorAssignmentHandlers.UpdateAssignment)
+				instructorGroup.DELETE("/assignments/:id", instructorAssignmentHandlers.DeleteAssignment)
+				instructorGroup.POST("/assignments/:id/assign", instructorAssignmentHandlers.AssignStudents)
+				instructorGroup.GET("/assignments/:id/progress", instructorAssignmentHandlers.GetAssignmentProgress)
+				instructorGroup.GET("/assignments/:id/students", instructorAssignmentHandlers.GetAssignmentStudents)
+				instructorGroup.POST("/assignments/:id/students/:student_id/remove", instructorAssignmentHandlers.RemoveStudent)
+				instructorGroup.GET("/students", instructorAssignmentHandlers.GetAllStudents)
+				instructorGroup.GET("/dashboard/stats", instructorAssignmentHandlers.GetDashboardStats)
+			}
+
+			// Student assignment routes
+			studentGroup := protected.Group("/student")
+			studentGroup.Use(middleware.RequireRole("student"))
+			{
+				studentGroup.GET("/assignments", studentAssignmentHandlers.GetAssignments)
+				studentGroup.GET("/assignments/:id", studentAssignmentHandlers.GetAssignment)
+				studentGroup.POST("/assignments/:id/status", studentAssignmentHandlers.UpdateStatus)
+				studentGroup.POST("/assignments/:id/complete", studentAssignmentHandlers.MarkAsCompleted)
+				studentGroup.POST("/assignments/:id/progress", studentAssignmentHandlers.MarkAsInProgress)
+				studentGroup.GET("/dashboard/stats", studentAssignmentHandlers.GetDashboardStats)
+				studentGroup.GET("/assignments/overdue", studentAssignmentHandlers.GetOverdueAssignments)
+				studentGroup.GET("/assignments/upcoming", studentAssignmentHandlers.GetUpcomingAssignments)
+				studentGroup.GET("/assignments/recent", studentAssignmentHandlers.GetRecentlyCompleted)
+				studentGroup.GET("/categories", studentAssignmentHandlers.GetCategories)
+				studentGroup.GET("/assignments/by-status", studentAssignmentHandlers.GetAssignmentsByStatus)
+				studentGroup.GET("/assignments/by-category", studentAssignmentHandlers.GetAssignmentsByCategory)
+				studentGroup.GET("/assignments/search", studentAssignmentHandlers.SearchAssignments)
+			}
 		}
 
 		// Update home page context
@@ -114,9 +148,45 @@ func main() {
 
 		// Protected routes
 		protected := r.Group("/")
-		protected.Use(middleware.RequireAuth())
+		protected.Use(middleware.RequireAuthWithUser(db))
 		{
 			protected.GET("/dashboard", authHandler.Dashboard)
+
+			// Instructor assignment routes
+			instructorGroup := protected.Group("/instructor")
+			instructorGroup.Use(middleware.RequireRole("instructor"))
+			{
+				instructorGroup.GET("/assignments", instructorAssignmentHandlers.GetAssignments)
+				instructorGroup.POST("/assignments", instructorAssignmentHandlers.CreateAssignment)
+				instructorGroup.GET("/assignments/:id", instructorAssignmentHandlers.GetAssignment)
+				instructorGroup.PUT("/assignments/:id", instructorAssignmentHandlers.UpdateAssignment)
+				instructorGroup.DELETE("/assignments/:id", instructorAssignmentHandlers.DeleteAssignment)
+				instructorGroup.POST("/assignments/:id/assign", instructorAssignmentHandlers.AssignStudents)
+				instructorGroup.GET("/assignments/:id/progress", instructorAssignmentHandlers.GetAssignmentProgress)
+				instructorGroup.GET("/assignments/:id/students", instructorAssignmentHandlers.GetAssignmentStudents)
+				instructorGroup.POST("/assignments/:id/students/:student_id/remove", instructorAssignmentHandlers.RemoveStudent)
+				instructorGroup.GET("/students", instructorAssignmentHandlers.GetAllStudents)
+				instructorGroup.GET("/dashboard/stats", instructorAssignmentHandlers.GetDashboardStats)
+			}
+
+			// Student assignment routes
+			studentGroup := protected.Group("/student")
+			studentGroup.Use(middleware.RequireRole("student"))
+			{
+				studentGroup.GET("/assignments", studentAssignmentHandlers.GetAssignments)
+				studentGroup.GET("/assignments/:id", studentAssignmentHandlers.GetAssignment)
+				studentGroup.POST("/assignments/:id/status", studentAssignmentHandlers.UpdateStatus)
+				studentGroup.POST("/assignments/:id/complete", studentAssignmentHandlers.MarkAsCompleted)
+				studentGroup.POST("/assignments/:id/progress", studentAssignmentHandlers.MarkAsInProgress)
+				studentGroup.GET("/dashboard/stats", studentAssignmentHandlers.GetDashboardStats)
+				studentGroup.GET("/assignments/overdue", studentAssignmentHandlers.GetOverdueAssignments)
+				studentGroup.GET("/assignments/upcoming", studentAssignmentHandlers.GetUpcomingAssignments)
+				studentGroup.GET("/assignments/recent", studentAssignmentHandlers.GetRecentlyCompleted)
+				studentGroup.GET("/categories", studentAssignmentHandlers.GetCategories)
+				studentGroup.GET("/assignments/by-status", studentAssignmentHandlers.GetAssignmentsByStatus)
+				studentGroup.GET("/assignments/by-category", studentAssignmentHandlers.GetAssignmentsByCategory)
+				studentGroup.GET("/assignments/search", studentAssignmentHandlers.SearchAssignments)
+			}
 		}
 
 		// Home page
