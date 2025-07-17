@@ -365,50 +365,441 @@ The application now supports two authentication modes:
 
 ### Phase 3: Assignment Management System (Week 3)
 **Status**: 🚀 READY TO START  
-**Planned Start**: Next
+**Planned Start**: July 17, 2025
+
+#### Phase 3 Overview
+
+Building a comprehensive assignment management system with role-based interfaces for instructors and students. This phase implements the core functionality that makes ZipCodeReader useful for educational environments.
 
 #### Phase 3 Task Plan
 
-1. ⏳ Create assignment model and database schema
-2. ⏳ Implement assignment CRUD operations
-3. ⏳ Create instructor assignment management interface
-4. ⏳ Create student assignment viewing interface
-5. ⏳ Add assignment progress tracking
-6. ⏳ Implement assignment submission system
-7. ⏳ Add assignment due date management
-8. ⏳ Create assignment dashboard
-9. ⏳ Add assignment search and filtering
-10. ⏳ Test assignment management flow
+1. ⏳ Create assignment models and database schema
+2. ⏳ Implement assignment CRUD operations service layer
+3. ⏳ Create instructor assignment management handlers
+4. ⏳ Create student assignment viewing handlers
+5. ⏳ Add assignment progress tracking system
+6. ⏳ Implement assignment-student relationship management
+7. ⏳ Add assignment due date and notification system
+8. ⏳ Create assignment dashboard interfaces
+9. ⏳ Add assignment search, filtering, and categorization
+10. ⏳ Test complete assignment management flow
 
-#### Phase 3 Features to Implement
-
-**Assignment Management:**
-- Create, read, update, delete assignments
-- Assignment metadata (title, description, due date, etc.)
-- Assignment categories and tags
-- Assignment visibility controls
-
-**Instructor Tools:**
-- Assignment creation form
-- Student progress monitoring
-- Assignment analytics
-- Bulk assignment operations
-
-**Student Features:**
-- Assignment list view
-- Assignment details view
-- Progress tracking
-- Assignment submission
-
-**Database Schema:**
-- Assignments table
-- Assignment-user relationships
-- Progress tracking tables
-- Submission tracking
+#### Detailed Implementation Plan
 
 ---
-**Status**: ✅ COMPLETE  
-**Completed**: July 17, 2025
+
+**Task 1: Assignment Models and Database Schema**
+**Priority**: High | **Estimated Time**: 2-3 hours
+
+**Objectives:**
+- Create comprehensive assignment data models
+- Design database schema for assignments and relationships
+- Implement database migrations
+- Set up proper indexing for performance
+
+**Deliverables:**
+- `models/assignment.go` - Assignment model with all fields
+- `models/student_assignment.go` - Assignment-student relationship model
+- Updated `database/migrations.go` - Database schema migration
+- Database indexes for performance optimization
+
+**Technical Details:**
+```go
+// Assignment model structure
+type Assignment struct {
+    ID          uint      `json:"id" gorm:"primaryKey"`
+    Title       string    `json:"title" gorm:"not null"`
+    Description string    `json:"description"`
+    URL         string    `json:"url" gorm:"not null"`
+    Category    string    `json:"category"`
+    DueDate     *time.Time `json:"due_date"`
+    CreatedByID uint      `json:"created_by_id"`
+    CreatedBy   User      `json:"created_by" gorm:"foreignKey:CreatedByID"`
+    CreatedAt   time.Time `json:"created_at"`
+    UpdatedAt   time.Time `json:"updated_at"`
+    DeletedAt   gorm.DeletedAt `json:"deleted_at" gorm:"index"`
+}
+
+// StudentAssignment model structure
+type StudentAssignment struct {
+    ID           uint       `json:"id" gorm:"primaryKey"`
+    AssignmentID uint       `json:"assignment_id"`
+    Assignment   Assignment `json:"assignment" gorm:"foreignKey:AssignmentID"`
+    StudentID    uint       `json:"student_id"`
+    Student      User       `json:"student" gorm:"foreignKey:StudentID"`
+    Status       string     `json:"status" gorm:"default:assigned"` // assigned, in_progress, completed
+    CompletedAt  *time.Time `json:"completed_at"`
+    CreatedAt    time.Time  `json:"created_at"`
+    UpdatedAt    time.Time  `json:"updated_at"`
+}
+```
+
+**Key Features:**
+- Foreign key relationships between assignments and users
+- Soft delete support for assignments
+- Status tracking for student assignments
+- Flexible due date system (nullable for non-time-sensitive assignments)
+- Category system for assignment organization
+
+---
+
+**Task 2: Assignment Service Layer**
+**Priority**: High | **Estimated Time**: 3-4 hours
+
+**Objectives:**
+- Create business logic layer for assignment operations
+- Implement CRUD operations with proper error handling
+- Add validation and authorization checks
+- Create assignment querying and filtering capabilities
+
+**Deliverables:**
+- `services/assignment.go` - Assignment service with all CRUD operations
+- `services/student_assignment.go` - Student assignment service
+- Proper error handling and validation
+- Database transaction management
+
+**Technical Details:**
+- Assignment creation with instructor authorization
+- Student assignment creation and management
+- Progress tracking and status updates
+- Assignment filtering by category, due date, status
+- Bulk assignment operations for instructors
+
+**Key Methods:**
+- `CreateAssignment(instructorID, title, description, url, category, dueDate)`
+- `AssignToStudent(assignmentID, studentID, instructorID)`
+- `AssignToMultipleStudents(assignmentID, studentIDs, instructorID)`
+- `UpdateAssignmentStatus(assignmentID, studentID, status)`
+- `GetAssignmentsByInstructor(instructorID)`
+- `GetAssignmentsByStudent(studentID)`
+- `GetAssignmentProgress(assignmentID)`
+
+---
+
+**Task 3: Instructor Assignment Management Handlers**
+**Priority**: High | **Estimated Time**: 4-5 hours
+
+**Objectives:**
+- Create HTTP handlers for instructor assignment operations
+- Implement assignment creation, editing, and deletion
+- Add student assignment management
+- Create assignment analytics and progress monitoring
+
+**Deliverables:**
+- `handlers/instructor_assignments.go` - Instructor assignment handlers
+- RESTful API endpoints for assignment management
+- Form validation and error handling
+- Assignment analytics endpoints
+
+**API Endpoints:**
+- `GET /instructor/assignments` - List all assignments created by instructor
+- `POST /instructor/assignments` - Create new assignment
+- `GET /instructor/assignments/:id` - Get specific assignment details
+- `PUT /instructor/assignments/:id` - Update assignment
+- `DELETE /instructor/assignments/:id` - Delete assignment
+- `POST /instructor/assignments/:id/assign` - Assign to students
+- `GET /instructor/assignments/:id/progress` - View assignment progress
+- `GET /instructor/assignments/:id/students` - List assigned students
+
+**Key Features:**
+- Role-based access control (instructor only)
+- Assignment creation with URL validation
+- Student selection and bulk assignment
+- Progress monitoring dashboard
+- Assignment editing and deletion with safety checks
+
+---
+
+**Task 4: Student Assignment Viewing Handlers**
+**Priority**: High | **Estimated Time**: 3-4 hours
+
+**Objectives:**
+- Create student-facing assignment interfaces
+- Implement assignment viewing and progress tracking
+- Add assignment completion functionality
+- Create student dashboard with assignment overview
+
+**Deliverables:**
+- `handlers/student_assignments.go` - Student assignment handlers
+- Student assignment dashboard
+- Assignment completion tracking
+- Assignment filtering and search for students
+
+**API Endpoints:**
+- `GET /student/assignments` - List all assigned readings
+- `GET /student/assignments/:id` - View specific assignment
+- `POST /student/assignments/:id/complete` - Mark assignment as complete
+- `POST /student/assignments/:id/progress` - Update progress status
+- `GET /student/dashboard` - Assignment dashboard with overview
+
+**Key Features:**
+- Personal assignment dashboard
+- Assignment status tracking (assigned, in_progress, completed)
+- Due date notifications and sorting
+- Assignment filtering by status and category
+- Reading progress tracking
+
+---
+
+**Task 5: Assignment Progress Tracking System**
+**Priority**: Medium | **Estimated Time**: 2-3 hours
+
+**Objectives:**
+- Implement comprehensive progress tracking
+- Add assignment completion statistics
+- Create progress reporting for instructors
+- Add assignment due date management
+
+**Deliverables:**
+- Progress tracking utilities
+- Assignment completion statistics
+- Due date notification system
+- Progress reporting dashboards
+
+**Technical Details:**
+- Track assignment completion rates
+- Monitor student engagement
+- Generate progress reports
+- Due date alerts and reminders
+- Assignment completion analytics
+
+**Key Features:**
+- Real-time progress updates
+- Assignment completion percentages
+- Student engagement metrics
+- Overdue assignment tracking
+- Progress visualization
+
+---
+
+**Task 6: Assignment-Student Relationship Management**
+**Priority**: Medium | **Estimated Time**: 2-3 hours
+
+**Objectives:**
+- Implement robust assignment-student relationships
+- Add bulk assignment capabilities
+- Create assignment removal and reassignment
+- Add student grouping for assignments
+
+**Deliverables:**
+- Student assignment relationship management
+- Bulk assignment operations
+- Assignment transfer capabilities
+- Student grouping system
+
+**Technical Details:**
+- Many-to-many relationship management
+- Bulk assignment to multiple students
+- Assignment removal and reassignment
+- Student group assignment capabilities
+
+---
+
+**Task 7: Assignment Due Date and Notification System**
+**Priority**: Medium | **Estimated Time**: 2-3 hours
+
+**Objectives:**
+- Implement due date management
+- Add assignment notifications
+- Create overdue assignment tracking
+- Add due date-based sorting and filtering
+
+**Deliverables:**
+- Due date management system
+- Assignment notification framework
+- Overdue assignment alerts
+- Due date-based assignment organization
+
+**Technical Details:**
+- Flexible due date system
+- Assignment reminder notifications
+- Overdue assignment identification
+- Due date-based dashboard sorting
+
+---
+
+**Task 8: Assignment Dashboard Interfaces**
+**Priority**: High | **Estimated Time**: 4-5 hours
+
+**Objectives:**
+- Create comprehensive assignment dashboards
+- Implement role-based dashboard views
+- Add assignment statistics and analytics
+- Create intuitive assignment management interfaces
+
+**Deliverables:**
+- `templates/instructor_assignments.html` - Instructor assignment dashboard
+- `templates/student_assignments.html` - Student assignment dashboard
+- `templates/assignment_create.html` - Assignment creation form
+- `templates/assignment_detail.html` - Assignment details view
+- `templates/assignment_assign.html` - Student assignment form
+
+**Key Features:**
+- Role-based dashboard views
+- Assignment creation and editing forms
+- Student assignment management
+- Progress tracking visualizations
+- Responsive design with Tailwind CSS
+
+**Dashboard Components:**
+- Assignment overview cards
+- Progress tracking charts
+- Due date calendars
+- Assignment status indicators
+- Student assignment tables
+
+---
+
+**Task 9: Assignment Search, Filtering, and Categorization**
+**Priority**: Medium | **Estimated Time**: 3-4 hours
+
+**Objectives:**
+- Implement assignment search functionality
+- Add filtering by category, status, and due date
+- Create assignment categorization system
+- Add sorting capabilities
+
+**Deliverables:**
+- Assignment search functionality
+- Multi-criteria filtering system
+- Assignment categorization
+- Sorting and pagination
+
+**Technical Details:**
+- Full-text search across assignment titles and descriptions
+- Category-based filtering
+- Status-based filtering (assigned, in_progress, completed)
+- Due date range filtering
+- Assignment sorting by various criteria
+
+**Key Features:**
+- Real-time search with JavaScript
+- Advanced filtering options
+- Category management
+- Saved search preferences
+- Pagination for large assignment lists
+
+---
+
+**Task 10: Testing and Integration**
+**Priority**: High | **Estimated Time**: 3-4 hours
+
+**Objectives:**
+- Test complete assignment management flow
+- Verify role-based access control
+- Test assignment-student relationships
+- Validate assignment progress tracking
+
+**Deliverables:**
+- Comprehensive testing suite
+- Integration testing
+- User acceptance testing
+- Performance testing
+
+**Testing Scenarios:**
+- Instructor assignment creation and management
+- Student assignment viewing and completion
+- Assignment progress tracking
+- Role-based access control
+- Assignment-student relationship management
+- Due date management and notifications
+
+---
+
+#### Phase 3 Implementation Timeline
+
+**Week 3 Schedule:**
+
+**Day 1 (July 17, 2025):**
+- Task 1: Assignment Models and Database Schema (2-3 hours)
+- Task 2: Assignment Service Layer (3-4 hours)
+- Start Task 3: Instructor Assignment Management Handlers
+
+**Day 2:**
+- Complete Task 3: Instructor Assignment Management Handlers (4-5 hours)
+- Task 4: Student Assignment Viewing Handlers (3-4 hours)
+
+**Day 3:**
+- Task 5: Assignment Progress Tracking System (2-3 hours)
+- Task 6: Assignment-Student Relationship Management (2-3 hours)
+- Task 7: Assignment Due Date and Notification System (2-3 hours)
+
+**Day 4:**
+- Task 8: Assignment Dashboard Interfaces (4-5 hours)
+- Task 9: Assignment Search, Filtering, and Categorization (3-4 hours)
+
+**Day 5:**
+- Task 10: Testing and Integration (3-4 hours)
+- Documentation updates
+- Phase 3 completion verification
+
+**Total Estimated Time:** 30-40 hours
+
+#### Phase 3 Development Priorities
+
+**High Priority (Core Features):**
+1. Assignment models and database schema
+2. Assignment CRUD operations service layer
+3. Instructor assignment management handlers
+4. Student assignment viewing handlers
+5. Assignment dashboard interfaces
+6. Testing and integration
+
+**Medium Priority (Enhancement Features):**
+7. Assignment progress tracking system
+8. Assignment-student relationship management
+9. Assignment due date and notification system
+10. Assignment search, filtering, and categorization
+
+#### Phase 3 Risk Assessment
+
+**Potential Challenges:**
+- Database relationship complexity between assignments and users
+- Role-based access control implementation
+- Assignment progress tracking accuracy
+- User interface complexity for assignment management
+
+**Mitigation Strategies:**
+- Thorough database schema design and testing
+- Clear separation of instructor and student interfaces
+- Comprehensive testing of all assignment operations
+- Iterative development with frequent testing
+
+#### Phase 3 Testing Strategy
+
+**Unit Testing:**
+- Test all assignment model methods
+- Test assignment service layer operations
+- Test HTTP handlers with mock data
+- Test database operations and relationships
+
+**Integration Testing:**
+- Test complete assignment creation flow
+- Test assignment-student relationship management
+- Test role-based access control
+- Test assignment progress tracking
+
+**User Acceptance Testing:**
+- Instructor assignment creation and management
+- Student assignment viewing and completion
+- Assignment progress monitoring
+- Assignment search and filtering
+
+#### Phase 3 Documentation Requirements
+
+**Technical Documentation:**
+- API endpoint documentation
+- Database schema documentation
+- Service layer method documentation
+- Model relationship documentation
+
+**User Documentation:**
+- Instructor assignment management guide
+- Student assignment viewing guide
+- Assignment progress tracking guide
+- Assignment categorization guide
+
+---
 
 ## Technical Decisions
 
