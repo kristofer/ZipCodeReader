@@ -18,6 +18,11 @@ func NewAssignmentService(db *gorm.DB) *AssignmentService {
 	return &AssignmentService{db: db}
 }
 
+// GetDB returns the database instance
+func (s *AssignmentService) GetDB() *gorm.DB {
+	return s.db
+}
+
 // CreateAssignmentInput represents input for creating an assignment
 type CreateAssignmentInput struct {
 	Title       string

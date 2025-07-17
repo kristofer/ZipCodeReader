@@ -1,0 +1,342 @@
+{{template "base.html" .}}
+
+{{define "content"}}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Back Button -->
+    <div class="mb-6">
+        <button onclick="goBack()" class="flex items-center text-gray-600 hover:text-gray-800">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Back to Assignments
+        </button>
+    </div>
+
+    <!-- Assignment Details -->
+    <div id="assignmentDetail" class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 id="assignmentTitle" class="text-2xl font-bold text-gray-900">Loading...</h1>
+                    <p id="assignmentCategory" class="text-sm text-gray-500 mt-1">Category</p>
+                </div>
+                <div id="assignmentStatus" class="px-3 py-1 rounded-full text-sm font-medium">Status</div>
+            </div>
+        </div>
+
+        <div class="px-6 py-6">
+            <!-- Assignment Info -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Assignment Details</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-sm font-medium text-gray-500">Assigned Date:</span>
+                            <span id="assignedDate" class="text-sm text-gray-900">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm font-medium text-gray-500">Due Date:</span>
+                            <span id="dueDate" class="text-sm text-gray-900">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm font-medium text-gray-500">Instructor:</span>
+                            <span id="instructor" class="text-sm text-gray-900">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm font-medium text-gray-500">Current Status:</span>
+                            <span id="currentStatus" class="text-sm text-gray-900">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Progress</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-sm font-medium text-gray-500">Completed At:</span>
+                            <span id="completedAt" class="text-sm text-gray-900">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm font-medium text-gray-500">Time Taken:</span>
+                            <span id="timeTaken" class="text-sm text-gray-900">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Description</h3>
+                <p id="assignmentDescription" class="text-gray-700 whitespace-pre-wrap">Loading description...</p>
+            </div>
+
+            <!-- Reading Link -->
+            <div class="mb-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Reading Material</h3>
+                <div class="flex items-center space-x-4">
+                    <a id="readingLink" href="#" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                        </svg>
+                        Open Reading Material
+                    </a>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="border-t border-gray-200 pt-6">
+                <div id="assignmentActions" class="flex space-x-4">
+                    <!-- Actions will be populated based on assignment status -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Update Modal -->
+    <div id="progressUpdateModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Update Progress</h3>
+            </div>
+            <div class="px-6 py-4">
+                <p class="text-sm text-gray-600 mb-4">Are you sure you want to update the status of this assignment?</p>
+                <div class="flex justify-end space-x-3">
+                    <button id="cancelUpdateBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">Cancel</button>
+                    <button id="confirmUpdateBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Assignment Detail JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    const assignmentId = getAssignmentIdFromUrl();
+    const progressUpdateModal = document.getElementById('progressUpdateModal');
+    const cancelUpdateBtn = document.getElementById('cancelUpdateBtn');
+    const confirmUpdateBtn = document.getElementById('confirmUpdateBtn');
+    
+    let currentAssignment = null;
+    let pendingStatusUpdate = null;
+
+    // Load assignment details
+    if (assignmentId) {
+        loadAssignmentDetails(assignmentId);
+    }
+
+    // Event listeners
+    cancelUpdateBtn.addEventListener('click', () => {
+        progressUpdateModal.classList.add('hidden');
+        pendingStatusUpdate = null;
+    });
+
+    confirmUpdateBtn.addEventListener('click', () => {
+        if (pendingStatusUpdate) {
+            updateAssignmentStatus(assignmentId, pendingStatusUpdate);
+        }
+    });
+
+    // Load assignment details
+    function loadAssignmentDetails(id) {
+        const userRole = getUserRole();
+        const endpoint = userRole === 'instructor' ? `/instructor/assignments/${id}` : `/student/assignments/${id}`;
+        
+        fetch(endpoint)
+            .then(response => response.json())
+            .then(data => {
+                currentAssignment = data;
+                renderAssignmentDetails(data);
+            })
+            .catch(error => {
+                console.error('Error loading assignment details:', error);
+                showError('Error loading assignment details');
+            });
+    }
+
+    // Render assignment details
+    function renderAssignmentDetails(assignment) {
+        // Basic info
+        document.getElementById('assignmentTitle').textContent = assignment.title;
+        document.getElementById('assignmentCategory').textContent = assignment.category;
+        document.getElementById('assignmentDescription').textContent = assignment.description || 'No description provided';
+        
+        // Reading link
+        const readingLink = document.getElementById('readingLink');
+        readingLink.href = assignment.reading_url || assignment.url;
+        
+        // Status
+        const statusElement = document.getElementById('assignmentStatus');
+        const statusColor = getStatusColor(assignment.status);
+        statusElement.className = `px-3 py-1 rounded-full text-sm font-medium ${statusColor}`;
+        statusElement.textContent = (assignment.status || 'assigned').replace('_', ' ');
+        
+        // Dates
+        document.getElementById('assignedDate').textContent = assignment.assigned_at ? 
+            new Date(assignment.assigned_at).toLocaleDateString() : 
+            new Date(assignment.created_at).toLocaleDateString();
+        
+        document.getElementById('dueDate').textContent = assignment.due_date ? 
+            new Date(assignment.due_date).toLocaleDateString() : 'No due date';
+        
+        // Instructor info
+        document.getElementById('instructor').textContent = assignment.instructor || 
+            (assignment.created_by ? assignment.created_by.username : 'Unknown');
+        
+        // Current status
+        document.getElementById('currentStatus').textContent = (assignment.status || 'assigned').replace('_', ' ');
+        
+        // Progress info
+        document.getElementById('completedAt').textContent = assignment.completed_at ? 
+            new Date(assignment.completed_at).toLocaleDateString() : 'Not completed';
+        
+        // Calculate time taken
+        if (assignment.completed_at && assignment.assigned_at) {
+            const assignedTime = new Date(assignment.assigned_at || assignment.created_at);
+            const completedTime = new Date(assignment.completed_at);
+            const timeDiff = completedTime - assignedTime;
+            const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+            document.getElementById('timeTaken').textContent = `${days} days`;
+        } else {
+            document.getElementById('timeTaken').textContent = 'In progress';
+        }
+        
+        // Render actions
+        renderAssignmentActions(assignment);
+    }
+
+    // Render assignment actions
+    function renderAssignmentActions(assignment) {
+        const actionsContainer = document.getElementById('assignmentActions');
+        const userRole = getUserRole();
+        
+        if (userRole === 'student') {
+            // Student actions
+            let actions = [];
+            
+            if (assignment.status === 'assigned') {
+                actions.push(`
+                    <button onclick="showProgressUpdate('in_progress')" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg">
+                        Start Assignment
+                    </button>
+                `);
+            } else if (assignment.status === 'in_progress') {
+                actions.push(`
+                    <button onclick="showProgressUpdate('completed')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
+                        Mark as Complete
+                    </button>
+                `);
+            }
+            
+            actions.push(`
+                <button onclick="goBack()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                    Back to Assignments
+                </button>
+            `);
+            
+            actionsContainer.innerHTML = actions.join('');
+        } else if (userRole === 'instructor') {
+            // Instructor actions
+            const actions = [
+                `<button onclick="editAssignment(${assignment.id})" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Edit Assignment</button>`,
+                `<button onclick="viewProgress(${assignment.id})" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">View Progress</button>`,
+                `<button onclick="assignStudents(${assignment.id})" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg">Manage Students</button>`,
+                `<button onclick="goBack()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">Back to Assignments</button>`
+            ];
+            
+            actionsContainer.innerHTML = actions.join('');
+        }
+    }
+
+    // Show progress update modal
+    function showProgressUpdate(newStatus) {
+        pendingStatusUpdate = newStatus;
+        progressUpdateModal.classList.remove('hidden');
+    }
+
+    // Update assignment status
+    function updateAssignmentStatus(id, status) {
+        const endpoint = status === 'completed' ? 
+            `/student/assignments/${id}/complete` : 
+            `/student/assignments/${id}/progress`;
+        
+        fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({status: status})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                progressUpdateModal.classList.add('hidden');
+                pendingStatusUpdate = null;
+                loadAssignmentDetails(id); // Reload details
+                showSuccess('Assignment status updated successfully!');
+            } else {
+                showError('Error updating assignment status: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error updating assignment status:', error);
+            showError('Error updating assignment status');
+        });
+    }
+
+    // Get status color
+    function getStatusColor(status) {
+        switch (status) {
+            case 'assigned': return 'bg-gray-100 text-gray-800';
+            case 'in_progress': return 'bg-yellow-100 text-yellow-800';
+            case 'completed': return 'bg-green-100 text-green-800';
+            default: return 'bg-gray-100 text-gray-800';
+        }
+    }
+
+    // Get assignment ID from URL
+    function getAssignmentIdFromUrl() {
+        const pathParts = window.location.pathname.split('/');
+        return pathParts[pathParts.length - 1];
+    }
+
+    // Get user role from page context
+    function getUserRole() {
+        return window.location.pathname.includes('/instructor/') ? 'instructor' : 'student';
+    }
+
+    // Show success message
+    function showSuccess(message) {
+        alert(message); // TODO: Replace with better notification system
+    }
+
+    // Show error message
+    function showError(message) {
+        alert(message); // TODO: Replace with better notification system
+    }
+
+    // Make showProgressUpdate globally available
+    window.showProgressUpdate = showProgressUpdate;
+});
+
+// Global functions
+function goBack() {
+    const userRole = window.location.pathname.includes('/instructor/') ? 'instructor' : 'student';
+    window.location.href = `/${userRole}/assignments`;
+}
+
+function editAssignment(id) {
+    // TODO: Implement edit functionality
+    alert('Edit functionality coming soon!');
+}
+
+function viewProgress(id) {
+    window.location.href = `/instructor/assignments/${id}/progress`;
+}
+
+function assignStudents(id) {
+    // TODO: Implement assign students functionality
+    alert('Assign students functionality coming soon!');
+}
+</script>
+{{end}}

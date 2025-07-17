@@ -530,12 +530,20 @@ func (h *InstructorAssignmentHandlers) GetDashboardStats(c *gin.Context) {
 		return
 	}
 
+	// Get all students
+	students, err := models.GetAllStudents(h.assignmentService.GetDB())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	// Calculate overall statistics
 	totalAssignments := len(assignments)
 	totalStudentAssignments := 0
 	totalCompleted := 0
 	totalInProgress := 0
 	totalAssigned := 0
+	overdueCount := 0
 
 	for _, assignment := range assignments {
 		progress, err := h.assignmentService.GetAssignmentProgress(assignment.ID, userObj.ID)
@@ -548,6 +556,11 @@ func (h *InstructorAssignmentHandlers) GetDashboardStats(c *gin.Context) {
 		totalAssigned += progress[models.StatusAssigned]
 		totalInProgress += progress[models.StatusInProgress]
 		totalCompleted += progress[models.StatusCompleted]
+
+		// Check for overdue assignments
+		if assignment.DueDate != nil && assignment.DueDate.Before(time.Now()) {
+			overdueCount++
+		}
 	}
 
 	// Calculate completion rate
@@ -556,16 +569,15 @@ func (h *InstructorAssignmentHandlers) GetDashboardStats(c *gin.Context) {
 		completionRate = float64(totalCompleted) / float64(totalStudentAssignments) * 100
 	}
 
-	stats := map[string]interface{}{
+	c.JSON(http.StatusOK, gin.H{
 		"total_assignments":         totalAssignments,
+		"active_students":           len(students),
 		"total_student_assignments": totalStudentAssignments,
 		"total_assigned":            totalAssigned,
 		"total_in_progress":         totalInProgress,
 		"total_completed":           totalCompleted,
 		"completion_rate":           completionRate,
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"stats": stats,
+		"overdue_count":             overdueCount,
+		"students":                  students,
 	})
 }

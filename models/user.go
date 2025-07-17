@@ -157,3 +157,13 @@ func AuthenticateLocalUser(db *gorm.DB, username, password string) (*User, error
 
 	return user, nil
 }
+
+// GetAllStudents retrieves all users with student role
+func GetAllStudents(db *gorm.DB) ([]User, error) {
+	var students []User
+	result := db.Where("role = ?", "student").Find(&students)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return students, nil
+}

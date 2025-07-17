@@ -25,7 +25,8 @@ func NewLocalAuthHandler(db *gorm.DB) *LocalAuthHandler {
 // ShowLogin shows the local login form
 func (h *LocalAuthHandler) ShowLogin(c *gin.Context) {
 	c.HTML(http.StatusOK, "local_login.html", gin.H{
-		"title": "Login",
+		"title":          "Login",
+		"use_local_auth": true,
 	})
 }
 
@@ -36,8 +37,9 @@ func (h *LocalAuthHandler) Login(c *gin.Context) {
 
 	if username == "" || password == "" {
 		c.HTML(http.StatusBadRequest, "local_login.html", gin.H{
-			"title": "Login",
-			"error": "Username and password are required",
+			"title":          "Login",
+			"error":          "Username and password are required",
+			"use_local_auth": true,
 		})
 		return
 	}
@@ -46,8 +48,9 @@ func (h *LocalAuthHandler) Login(c *gin.Context) {
 	user, err := models.AuthenticateLocalUser(h.db, username, password)
 	if err != nil {
 		c.HTML(http.StatusUnauthorized, "local_login.html", gin.H{
-			"title": "Login",
-			"error": "Invalid credentials",
+			"title":          "Login",
+			"error":          "Invalid credentials",
+			"use_local_auth": true,
 		})
 		return
 	}
@@ -58,13 +61,14 @@ func (h *LocalAuthHandler) Login(c *gin.Context) {
 	session.Set("user_role", user.Role)
 	session.Save()
 
-	c.Redirect(http.StatusTemporaryRedirect, "/dashboard")
+	c.Redirect(http.StatusSeeOther, "/dashboard")
 }
 
 // ShowRegister shows the local registration form
 func (h *LocalAuthHandler) ShowRegister(c *gin.Context) {
 	c.HTML(http.StatusOK, "local_register.html", gin.H{
-		"title": "Register",
+		"title":          "Register",
+		"use_local_auth": true,
 	})
 }
 
@@ -79,24 +83,27 @@ func (h *LocalAuthHandler) Register(c *gin.Context) {
 	// Validation
 	if username == "" || email == "" || password == "" {
 		c.HTML(http.StatusBadRequest, "local_register.html", gin.H{
-			"title": "Register",
-			"error": "All fields are required",
+			"title":          "Register",
+			"error":          "All fields are required",
+			"use_local_auth": true,
 		})
 		return
 	}
 
 	if password != confirmPassword {
 		c.HTML(http.StatusBadRequest, "local_register.html", gin.H{
-			"title": "Register",
-			"error": "Passwords do not match",
+			"title":          "Register",
+			"error":          "Passwords do not match",
+			"use_local_auth": true,
 		})
 		return
 	}
 
 	if len(password) < 6 {
 		c.HTML(http.StatusBadRequest, "local_register.html", gin.H{
-			"title": "Register",
-			"error": "Password must be at least 6 characters long",
+			"title":          "Register",
+			"error":          "Password must be at least 6 characters long",
+			"use_local_auth": true,
 		})
 		return
 	}
@@ -105,8 +112,9 @@ func (h *LocalAuthHandler) Register(c *gin.Context) {
 	user, err := models.CreateLocalUserWithRole(h.db, username, email, password, role)
 	if err != nil {
 		c.HTML(http.StatusConflict, "local_register.html", gin.H{
-			"title": "Register",
-			"error": "Username already exists",
+			"title":          "Register",
+			"error":          "Username already exists",
+			"use_local_auth": true,
 		})
 		return
 	}
@@ -117,7 +125,7 @@ func (h *LocalAuthHandler) Register(c *gin.Context) {
 	session.Set("user_role", user.Role)
 	session.Save()
 
-	c.Redirect(http.StatusTemporaryRedirect, "/dashboard")
+	c.Redirect(http.StatusSeeOther, "/dashboard")
 }
 
 // Logout clears the user session
@@ -126,5 +134,5 @@ func (h *LocalAuthHandler) Logout(c *gin.Context) {
 	session.Clear()
 	session.Save()
 
-	c.Redirect(http.StatusTemporaryRedirect, "/")
+	c.Redirect(http.StatusSeeOther, "/")
 }

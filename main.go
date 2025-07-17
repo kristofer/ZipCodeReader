@@ -3,11 +3,13 @@ package main
 import (
 	"flag"
 	"log"
+	"net/http"
 
 	"zipcodereader/config"
 	"zipcodereader/database"
 	"zipcodereader/handlers"
 	"zipcodereader/middleware"
+	"zipcodereader/models"
 	"zipcodereader/services"
 
 	"github.com/gin-contrib/sessions"
@@ -17,11 +19,11 @@ import (
 
 func main() {
 	// Parse command line flags
-	useLocalAuth := flag.Bool("use_local_auth", false, "Use local authentication instead of GitHub OAuth2")
+	useOAuth2 := flag.Bool("use_oauth2", false, "Use GitHub OAuth2 authentication instead of local authentication")
 	flag.Parse()
 
-	// Load configuration
-	cfg := config.Load(*useLocalAuth)
+	// Load configuration (local auth is default, OAuth2 is optional)
+	cfg := config.Load(!*useOAuth2)
 
 	// Initialize database
 	db, err := database.Initialize(cfg.DatabaseURL)
@@ -65,10 +67,11 @@ func main() {
 	studentAssignmentHandlers := handlers.NewStudentAssignmentHandlers(studentAssignmentService)
 	progressTrackingHandlers := handlers.NewProgressTrackingHandlers(progressTrackingService)
 	dueDateNotificationHandlers := handlers.NewDueDateNotificationHandlers(dueDateNotificationService)
+	dashboardHandlers := handlers.NewDashboardHandlers(assignmentService, studentAssignmentService, cfg.UseLocalAuth)
 
 	// Setup authentication routes based on mode
 	if cfg.UseLocalAuth {
-		log.Println("Using local authentication mode")
+		log.Println("Using local authentication mode (default)")
 		localAuthHandler := handlers.NewLocalAuthHandler(db)
 
 		// Local authentication routes
@@ -78,7 +81,7 @@ func main() {
 		r.POST("/local/register", localAuthHandler.Register)
 		r.GET("/local/logout", localAuthHandler.Logout)
 
-		// Dashboard route
+		// Dashboard route - redirects to appropriate dashboard based on user role
 		protected := r.Group("/")
 		protected.Use(middleware.RequireAuthWithUser(db))
 		{
@@ -89,16 +92,24 @@ func main() {
 					return
 				}
 
-				c.HTML(200, "dashboard.html", gin.H{
-					"title": "Dashboard",
-					"user":  user,
-				})
+				userObj := user.(*models.User)
+				if userObj.IsInstructor() {
+					c.Redirect(http.StatusSeeOther, "/instructor/dashboard")
+				} else {
+					c.Redirect(http.StatusSeeOther, "/student/dashboard")
+				}
 			})
 
 			// Instructor assignment routes
 			instructorGroup := protected.Group("/instructor")
 			instructorGroup.Use(middleware.RequireRole("instructor"))
 			{
+				// Dashboard routes
+				instructorGroup.GET("/dashboard", dashboardHandlers.ShowInstructorDashboard)
+				instructorGroup.GET("/assignments/:id/detail", dashboardHandlers.ShowAssignmentDetail)
+				instructorGroup.GET("/assignments/:id/progress-view", dashboardHandlers.ShowAssignmentProgress)
+
+				// API routes
 				instructorGroup.GET("/assignments", instructorAssignmentHandlers.GetAssignments)
 				instructorGroup.POST("/assignments", instructorAssignmentHandlers.CreateAssignment)
 				instructorGroup.GET("/assignments/:id", instructorAssignmentHandlers.GetAssignment)
@@ -126,6 +137,11 @@ func main() {
 			studentGroup := protected.Group("/student")
 			studentGroup.Use(middleware.RequireRole("student"))
 			{
+				// Dashboard routes
+				studentGroup.GET("/dashboard", dashboardHandlers.ShowStudentDashboard)
+				studentGroup.GET("/assignments/:id/detail", dashboardHandlers.ShowAssignmentDetail)
+
+				// API routes
 				studentGroup.GET("/assignments", studentAssignmentHandlers.GetAssignments)
 				studentGroup.GET("/assignments/:id", studentAssignmentHandlers.GetAssignment)
 				studentGroup.POST("/assignments/:id/status", studentAssignmentHandlers.UpdateStatus)
@@ -156,7 +172,7 @@ func main() {
 			})
 		})
 	} else {
-		log.Println("Using GitHub OAuth2 authentication mode")
+		log.Println("Using GitHub OAuth2 authentication mode (optional)")
 		authService := services.NewAuthService(db, cfg)
 		authHandler := handlers.NewAuthHandler(authService)
 
@@ -175,6 +191,10 @@ func main() {
 			instructorGroup := protected.Group("/instructor")
 			instructorGroup.Use(middleware.RequireRole("instructor"))
 			{
+				// Dashboard routes
+				instructorGroup.GET("/dashboard", dashboardHandlers.ShowInstructorDashboard)
+				instructorGroup.GET("/assignments/:id/detail", dashboardHandlers.ShowAssignmentDetail)
+				instructorGroup.GET("/assignments/:id/progress-view", dashboardHandlers.ShowAssignmentProgress)
 				instructorGroup.GET("/assignments", instructorAssignmentHandlers.GetAssignments)
 				instructorGroup.POST("/assignments", instructorAssignmentHandlers.CreateAssignment)
 				instructorGroup.GET("/assignments/:id", instructorAssignmentHandlers.GetAssignment)
@@ -202,6 +222,11 @@ func main() {
 			studentGroup := protected.Group("/student")
 			studentGroup.Use(middleware.RequireRole("student"))
 			{
+				// Dashboard routes
+				studentGroup.GET("/dashboard", dashboardHandlers.ShowStudentDashboard)
+				studentGroup.GET("/assignments/:id/detail", dashboardHandlers.ShowAssignmentDetail)
+
+				// API routes
 				studentGroup.GET("/assignments", studentAssignmentHandlers.GetAssignments)
 				studentGroup.GET("/assignments/:id", studentAssignmentHandlers.GetAssignment)
 				studentGroup.POST("/assignments/:id/status", studentAssignmentHandlers.UpdateStatus)
@@ -234,9 +259,9 @@ func main() {
 	log.Printf("Server starting on port %s", cfg.Port)
 	log.Printf("Authentication mode: %s", func() string {
 		if cfg.UseLocalAuth {
-			return "Local"
+			return "Local (default)"
 		}
-		return "GitHub OAuth2"
+		return "GitHub OAuth2 (optional)"
 	}())
 
 	if err := r.Run(":" + cfg.Port); err != nil {

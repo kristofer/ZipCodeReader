@@ -22,20 +22,38 @@
                         <img src="{{.user.AvatarURL}}" alt="Avatar" class="w-8 h-8 rounded-full">
                         <span class="text-sm">{{.user.Username}}</span>
                     </div>
-                    <a href="/auth/logout" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm">
-                        Logout
-                    </a>
+                    {{if .use_local_auth}}
+                        <a href="/local/logout" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm">
+                            Logout
+                        </a>
+                    {{else}}
+                        <a href="/auth/logout" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm">
+                            Logout
+                        </a>
+                    {{end}}
                 {{else}}
-                    <a href="/auth/login" class="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm">
-                        Login
-                    </a>
+                    {{if .use_local_auth}}
+                        <a href="/local/login" class="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm">
+                            Login
+                        </a>
+                    {{else}}
+                        <a href="/auth/login" class="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm">
+                            Login
+                        </a>
+                    {{end}}
                 {{end}}
             </div>
         </div>
     </nav>
 
     <main class="container mx-auto mt-8 p-4">
-        {{block "content" .}}{{end}}
+        {{if eq .template_type "instructor"}}
+            {{template "instructor_content" .}}
+        {{else if eq .template_type "student"}}
+            {{template "student_content" .}}
+        {{else}}
+            {{block "content" .}}{{end}}
+        {{end}}
     </main>
 
     <footer class="bg-gray-800 text-white p-4 mt-16">
