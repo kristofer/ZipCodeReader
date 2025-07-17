@@ -41,6 +41,14 @@ func main() {
 
 	// Session middleware
 	store := cookie.NewStore([]byte(cfg.SessionSecret))
+	// Configure session store for development
+	store.Options(sessions.Options{
+		Path:     "/",
+		MaxAge:   86400 * 30, // 30 days
+		HttpOnly: true,
+		Secure:   false, // Set to true in production with HTTPS
+		SameSite: http.SameSiteLaxMode,
+	})
 	r.Use(sessions.Sessions("zipcodereader", store))
 
 	// Add middleware
@@ -163,14 +171,7 @@ func main() {
 			}
 		}
 
-		// Update home page context
-		r.GET("/", func(c *gin.Context) {
-			c.HTML(200, "index.html", gin.H{
-				"title":          "ZipCodeReader",
-				"message":        "Welcome to ZipCodeReader - A reading list manager for students",
-				"use_local_auth": true,
-			})
-		})
+		// Update home page context - removed duplicate route
 	} else {
 		log.Println("Using GitHub OAuth2 authentication mode (optional)")
 		authService := services.NewAuthService(db, cfg)
@@ -244,16 +245,37 @@ func main() {
 				// Due date notification routes for students
 				studentGroup.GET("/due-dates/alerts", dueDateNotificationHandlers.GetStudentDueDateAlerts)
 				studentGroup.GET("/due-dates/summary", dueDateNotificationHandlers.GetStudentDueDateSummary)
-				studentGroup.GET("/due-dates/notifications", dueDateNotificationHandlers.GetDueDateNotifications)
-			}
+				studentGroup.GET("/due-dates/notifications", dueDateNotificationHandlers.GetDueDateNotifications)			}
 		}
-
-		// Home page
-		r.GET("/", h.Home)
 	}
 
 	// Common routes
 	r.GET("/health", h.Health)
+
+	// Home page - check if user is logged in
+	r.GET("/", func(c *gin.Context) {
+		session := sessions.Default(c)
+		userID := session.Get("user_id")
+		
+		if userID != nil {
+			// User is logged in, get user info
+			user, err := models.GetUserByID(db, userID.(uint))
+			if err == nil {
+				c.HTML(http.StatusOK, "index.html", gin.H{
+					"title":          "ZipCodeReader",
+					"user":           user,
+					"use_local_auth": cfg.UseLocalAuth,
+				})
+				return
+			}
+		}
+		
+		// User not logged in, show normal home page
+		c.HTML(http.StatusOK, "index.html", gin.H{
+			"title":          "ZipCodeReader",
+			"use_local_auth": cfg.UseLocalAuth,
+		})
+	})
 
 	// Start server
 	log.Printf("Server starting on port %s", cfg.Port)
