@@ -628,8 +628,8 @@ type StudentAssignment struct {
 - `GET /instructor/progress/summary` - Progress summary
 - `GET /instructor/progress/trends` - Progress trends
 - `GET /instructor/progress/completion-analytics` - Completion analytics
-- `GET /instructor/due-dates/overview` - Due date overview
-- `GET /instructor/due-dates/notifications` - Due date notifications
+- `GET /instructor/due-dates/overview` - Get due date overview
+- `GET /instructor/due-dates/notifications` - Get due date notifications
 
 **Key Features:**
 - Role-based access control (instructor only)
@@ -1074,8 +1074,8 @@ Following standard Go project layout with clear separation of concerns:
 - `GET /instructor/progress/summary` - Progress summary
 - `GET /instructor/progress/trends` - Progress trends
 - `GET /instructor/progress/completion-analytics` - Completion analytics
-- `GET /instructor/due-dates/overview` - Due date overview
-- `GET /instructor/due-dates/notifications` - Due date notifications
+- `GET /instructor/due-dates/overview` - Get due date overview
+- `GET /instructor/due-dates/notifications` - Get due date notifications
 
 *Student Routes:*
 - `GET /student/dashboard` - Student dashboard UI
