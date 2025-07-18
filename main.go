@@ -132,6 +132,7 @@ func main() {
 				instructorGroup.GET("/students/:username/progress", instructorAssignmentHandlers.GetStudentProgress)
 				instructorGroup.GET("/students/:username/assignments", instructorAssignmentHandlers.ShowStudentAssignments)
 				instructorGroup.POST("/students/:username/assignments/:assignment_id/assign", instructorAssignmentHandlers.AssignToStudent)
+				instructorGroup.DELETE("/students/:username/assignments/:assignment_id/remove", instructorAssignmentHandlers.RemoveFromStudent)
 				instructorGroup.GET("/dashboard/stats", instructorAssignmentHandlers.GetDashboardStats)
 
 				// Advanced progress tracking routes
@@ -214,9 +215,8 @@ func main() {
 				instructorGroup.GET("/students/:username/progress", instructorAssignmentHandlers.GetStudentProgress)
 				instructorGroup.GET("/students/:username/assignments", instructorAssignmentHandlers.ShowStudentAssignments)
 				instructorGroup.POST("/students/:username/assignments/:assignment_id/assign", instructorAssignmentHandlers.AssignToStudent)
-				instructorGroup.GET("/dashboard/stats", instructorAssignmentHandlers.GetDashboardStats)
-
-				// Advanced progress tracking routes
+				instructorGroup.DELETE("/students/:username/assignments/:assignment_id/remove", instructorAssignmentHandlers.RemoveFromStudent)
+				instructorGroup.GET("/dashboard/stats", instructorAssignmentHandlers.GetDashboardStats) // Advanced progress tracking routes
 				instructorGroup.GET("/assignments/:id/detailed-progress", progressTrackingHandlers.GetDetailedProgressReport)
 				instructorGroup.GET("/progress/summary", progressTrackingHandlers.GetInstructorProgressSummary)
 				instructorGroup.GET("/progress/trends", progressTrackingHandlers.GetProgressTrends)

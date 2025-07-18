@@ -871,3 +871,70 @@ func (h *InstructorAssignmentHandlers) AssignToStudent(c *gin.Context) {
 		"student_assignment": studentAssignment,
 	})
 }
+
+// RemoveFromStudent handles DELETE /instructor/students/:username/assignments/:assignment_id/remove
+func (h *InstructorAssignmentHandlers) RemoveFromStudent(c *gin.Context) {
+	// Get user from context (set by auth middleware)
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	userObj := user.(*models.User)
+	if !userObj.IsInstructor() {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
+		return
+	}
+
+	username := c.Param("username")
+	assignmentIDStr := c.Param("assignment_id")
+
+	assignmentID, err := strconv.ParseUint(assignmentIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid assignment ID"})
+		return
+	}
+
+	// Get the student user
+	student, err := models.GetUserByUsername(h.assignmentService.GetDB(), username)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Student not found"})
+		return
+	}
+
+	if !student.IsStudent() {
+		c.JSON(http.StatusForbidden, gin.H{"error": "User is not a student"})
+		return
+	}
+
+	// Verify the assignment exists and belongs to this instructor
+	assignment, err := h.assignmentService.GetAssignmentByID(uint(assignmentID), userObj.ID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Assignment not found"})
+		return
+	}
+
+	if assignment.CreatedByID != userObj.ID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You can only remove your own assignments"})
+		return
+	}
+
+	// Check if assignment is assigned to this student
+	existing, err := models.GetStudentAssignment(h.assignmentService.GetDB(), uint(assignmentID), student.ID)
+	if err != nil || existing == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Assignment not assigned to this student"})
+		return
+	}
+
+	// Remove the student assignment
+	err = models.RemoveStudentAssignment(h.assignmentService.GetDB(), uint(assignmentID), student.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to remove assignment"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Assignment removed successfully",
+	})
+}

@@ -158,17 +158,20 @@
                                     </span>
                                 {{end}}
                             {{else}}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                     Not Assigned
                                 </span>
                             {{end}}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {{if index $.assigned_map $assignment_id}}
-                                <button disabled class="text-gray-400 text-sm cursor-not-allowed">Already Assigned</button>
+                                <button onclick="removeReading({{.ID}}, {{$.student.Username | printf "%q"}})" 
+                                        class="bg-red-100 hover:bg-red-200 text-red-700 hover:text-red-800 px-3 py-1 rounded-md text-sm font-medium transition-colors">
+                                    Remove
+                                </button>
                             {{else}}
-                                <button onclick="assignReading({{.ID}}, '{{$.student.Username}}')" 
-                                        class="text-green-600 hover:text-green-800 text-sm font-medium">
+                                <button onclick="assignReading({{.ID}}, {{$.student.Username | printf "%q"}})" 
+                                        class="bg-green-100 hover:bg-green-200 text-green-700 hover:text-green-800 px-3 py-1 rounded-md text-sm font-medium transition-colors">
                                     Assign Reading
                                 </button>
                             {{end}}
@@ -201,6 +204,7 @@
 <script>
 function assignReading(assignmentId, username) {
     const button = event.target;
+    const row = button.closest('tr');
     button.disabled = true;
     button.textContent = 'Assigning...';
     
@@ -214,10 +218,23 @@ function assignReading(assignmentId, username) {
     .then(data => {
         if (data.message) {
             showMessage(data.message, 'success');
-            // Reload the page to update the assignment status
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
+            // Update the UI immediately - change the button to "Remove"
+            const actionCell = button.parentElement;
+            actionCell.innerHTML = `
+                <button onclick="removeReading(${assignmentId}, '${username}')" 
+                        class="bg-red-100 hover:bg-red-200 text-red-700 hover:text-red-800 px-3 py-1 rounded-md text-sm font-medium transition-colors">
+                    Remove
+                </button>
+            `;
+            // Also update the status cell
+            const statusCell = row.querySelector('td:nth-child(4)'); // Status is the 4th column
+            if (statusCell) {
+                statusCell.innerHTML = `
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        Assigned
+                    </span>
+                `;
+            }
         } else if (data.error) {
             showMessage(data.error, 'error');
             button.disabled = false;
@@ -229,6 +246,53 @@ function assignReading(assignmentId, username) {
         showMessage('Failed to assign reading. Please try again.', 'error');
         button.disabled = false;
         button.textContent = 'Assign Reading';
+    });
+}
+
+function removeReading(assignmentId, username) {
+    const button = event.target;
+    const row = button.closest('tr');
+    button.disabled = true;
+    button.textContent = 'Removing...';
+    
+    fetch(`/instructor/students/${username}/assignments/${assignmentId}/remove`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            showMessage(data.message, 'success');
+            // Update the UI immediately - change the button to "Assign Reading"
+            const actionCell = button.parentElement;
+            actionCell.innerHTML = `
+                <button onclick="assignReading(${assignmentId}, '${username}')" 
+                        class="bg-green-100 hover:bg-green-200 text-green-700 hover:text-green-800 px-3 py-1 rounded-md text-sm font-medium transition-colors">
+                    Assign Reading
+                </button>
+            `;
+            // Also update the status cell
+            const statusCell = row.querySelector('td:nth-child(4)'); // Status is the 4th column
+            if (statusCell) {
+                statusCell.innerHTML = `
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        Not Assigned
+                    </span>
+                `;
+            }
+        } else if (data.error) {
+            showMessage(data.error, 'error');
+            button.disabled = false;
+            button.textContent = 'Remove';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showMessage('Failed to remove reading. Please try again.', 'error');
+        button.disabled = false;
+        button.textContent = 'Remove';
     });
 }
 
