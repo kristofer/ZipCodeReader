@@ -51,6 +51,8 @@
             {{template "instructor_content" .}}
         {{else if eq .template_type "student"}}
             {{template "student_content" .}}
+        {{else if eq .template_type "student_assignment"}}
+            {{template "student_assignment_content" .}}
         {{else}}
             {{block "content" .}}{{end}}
         {{end}}

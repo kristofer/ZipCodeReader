@@ -130,6 +130,8 @@ func main() {
 				instructorGroup.POST("/assignments/:id/students/:student_id/remove", instructorAssignmentHandlers.RemoveStudent)
 				instructorGroup.GET("/students", instructorAssignmentHandlers.GetAllStudents)
 				instructorGroup.GET("/students/:username/progress", instructorAssignmentHandlers.GetStudentProgress)
+				instructorGroup.GET("/students/:username/assignments", instructorAssignmentHandlers.ShowStudentAssignments)
+				instructorGroup.POST("/students/:username/assignments/:assignment_id/assign", instructorAssignmentHandlers.AssignToStudent)
 				instructorGroup.GET("/dashboard/stats", instructorAssignmentHandlers.GetDashboardStats)
 
 				// Advanced progress tracking routes
@@ -210,6 +212,8 @@ func main() {
 				instructorGroup.POST("/assignments/:id/students/:student_id/remove", instructorAssignmentHandlers.RemoveStudent)
 				instructorGroup.GET("/students", instructorAssignmentHandlers.GetAllStudents)
 				instructorGroup.GET("/students/:username/progress", instructorAssignmentHandlers.GetStudentProgress)
+				instructorGroup.GET("/students/:username/assignments", instructorAssignmentHandlers.ShowStudentAssignments)
+				instructorGroup.POST("/students/:username/assignments/:assignment_id/assign", instructorAssignmentHandlers.AssignToStudent)
 				instructorGroup.GET("/dashboard/stats", instructorAssignmentHandlers.GetDashboardStats)
 
 				// Advanced progress tracking routes

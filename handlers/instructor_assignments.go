@@ -666,7 +666,7 @@ func (h *InstructorAssignmentHandlers) GetStudentProgress(c *gin.Context) {
 	inProgressCount := 0
 	assignedCount := 0
 	overdueCount := 0
-	
+
 	for _, sa := range studentAssignments {
 		switch sa.Status {
 		case "completed":
@@ -676,7 +676,7 @@ func (h *InstructorAssignmentHandlers) GetStudentProgress(c *gin.Context) {
 		case "assigned":
 			assignedCount++
 		}
-		
+
 		// Check if overdue
 		if sa.Assignment.DueDate != nil && time.Now().After(*sa.Assignment.DueDate) && sa.Status != "completed" {
 			overdueCount++
@@ -699,12 +699,12 @@ func (h *InstructorAssignmentHandlers) GetStudentProgress(c *gin.Context) {
 				"email":    student.Email,
 			},
 			"progress": gin.H{
-				"total_assignments":   totalAssignments,
-				"completed":          completedCount,
-				"in_progress":        inProgressCount,
-				"assigned":           assignedCount,
-				"overdue":            overdueCount,
-				"completion_rate":    completionRate,
+				"total_assignments": totalAssignments,
+				"completed":         completedCount,
+				"in_progress":       inProgressCount,
+				"assigned":          assignedCount,
+				"overdue":           overdueCount,
+				"completion_rate":   completionRate,
 			},
 			"assignments": studentAssignments,
 		})
@@ -717,13 +717,157 @@ func (h *InstructorAssignmentHandlers) GetStudentProgress(c *gin.Context) {
 		"user":    userObj,
 		"student": student,
 		"progress": gin.H{
-			"total_assignments":   totalAssignments,
-			"completed":          completedCount,
-			"in_progress":        inProgressCount,
-			"assigned":           assignedCount,
-			"overdue":            overdueCount,
-			"completion_rate":    completionRate,
+			"total_assignments": totalAssignments,
+			"completed":         completedCount,
+			"in_progress":       inProgressCount,
+			"assigned":          assignedCount,
+			"overdue":           overdueCount,
+			"completion_rate":   completionRate,
 		},
 		"assignments": studentAssignments,
+	})
+}
+
+// ShowStudentAssignments handles GET /instructor/students/:username/assignments
+func (h *InstructorAssignmentHandlers) ShowStudentAssignments(c *gin.Context) {
+	// Get user from context (set by auth middleware)
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	userObj := user.(*models.User)
+	if !userObj.IsInstructor() {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
+		return
+	}
+
+	username := c.Param("username")
+
+	// Get the student user
+	student, err := models.GetUserByUsername(h.assignmentService.GetDB(), username)
+	if err != nil {
+		c.HTML(http.StatusNotFound, "base.html", gin.H{
+			"title": "Student Not Found",
+			"user":  userObj,
+			"error": "Student not found",
+		})
+		return
+	}
+
+	if !student.IsStudent() {
+		c.HTML(http.StatusForbidden, "base.html", gin.H{
+			"title": "Access Denied",
+			"user":  userObj,
+			"error": "User is not a student",
+		})
+		return
+	}
+
+	// Get all assignments created by this instructor
+	assignments, err := h.assignmentService.GetAssignmentsByInstructor(userObj.ID)
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "base.html", gin.H{
+			"title": "Error",
+			"user":  userObj,
+			"error": "Failed to retrieve assignments",
+		})
+		return
+	}
+
+	// Get student's current assignments to show which ones are already assigned
+	studentAssignments, err := models.GetStudentAssignmentsByStudent(h.assignmentService.GetDB(), student.ID)
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "base.html", gin.H{
+			"title": "Error",
+			"user":  userObj,
+			"error": "Failed to retrieve student assignments",
+		})
+		return
+	}
+
+	// Create a map of assigned assignment IDs for quick lookup
+	assignedMap := make(map[uint]models.StudentAssignment)
+	for _, sa := range studentAssignments {
+		assignedMap[sa.AssignmentID] = sa
+	}
+
+	c.HTML(http.StatusOK, "student_assignment_management.html", gin.H{
+		"title":               "Assign Readings to " + student.Username,
+		"user":                userObj,
+		"student":             student,
+		"assignments":         assignments,
+		"assigned_map":        assignedMap,
+		"student_assignments": studentAssignments,
+		"template_type":       "student_assignment",
+	})
+}
+
+// AssignToStudent handles POST /instructor/students/:username/assignments/:assignment_id/assign
+func (h *InstructorAssignmentHandlers) AssignToStudent(c *gin.Context) {
+	// Get user from context (set by auth middleware)
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	userObj := user.(*models.User)
+	if !userObj.IsInstructor() {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
+		return
+	}
+
+	username := c.Param("username")
+	assignmentIDStr := c.Param("assignment_id")
+
+	assignmentID, err := strconv.ParseUint(assignmentIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid assignment ID"})
+		return
+	}
+
+	// Get the student user
+	student, err := models.GetUserByUsername(h.assignmentService.GetDB(), username)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Student not found"})
+		return
+	}
+
+	if !student.IsStudent() {
+		c.JSON(http.StatusForbidden, gin.H{"error": "User is not a student"})
+		return
+	}
+
+	// Verify the assignment exists and belongs to this instructor
+	assignment, err := h.assignmentService.GetAssignmentByID(uint(assignmentID), userObj.ID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Assignment not found"})
+		return
+	}
+
+	if assignment.CreatedByID != userObj.ID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You can only assign your own assignments"})
+		return
+	}
+
+	// Check if already assigned
+	existing, err := models.GetStudentAssignment(h.assignmentService.GetDB(), uint(assignmentID), student.ID)
+	if err == nil && existing != nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "Assignment already assigned to this student"})
+		return
+	}
+
+	// Create the student assignment
+	studentAssignment, err := models.CreateStudentAssignment(h.assignmentService.GetDB(), uint(assignmentID), student.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to assign reading"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":            "Reading assigned successfully",
+		"student_assignment": studentAssignment,
 	})
 }

@@ -436,7 +436,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             ${student.role}
                         </span>
                         <button onclick="viewStudentProgress('${student.username}')" class="text-blue-600 hover:text-blue-800 text-sm">View Progress</button>
-                        <button onclick="assignToStudent(${student.id})" class="text-green-600 hover:text-green-800 text-sm">Assign</button>
+                        <button onclick="assignToStudent('${student.username}')" class="text-green-600 hover:text-green-800 text-sm">Assign</button>
                     </div>
                 </div>
             </div>
@@ -1004,9 +1004,9 @@ function viewStudentProgress(username) {
     window.location.href = `/instructor/students/${username}/progress`;
 }
 
-function assignToStudent(studentId) {
-    // TODO: Implement assign to student functionality
-    alert('Assign to student functionality coming soon!');
+function assignToStudent(username) {
+    // Navigate to the student assignment management page
+    window.location.href = `/instructor/students/${username}/assignments`;
 }
 </script>
 {{end}}

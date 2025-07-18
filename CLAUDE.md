@@ -5,6 +5,79 @@ Building a web-based reading list manager for ZipCode students and instructors u
 
 ## Development Progress
 
+### ✅ July 18, 2025 - Instructor Dashboard "Assign" Link Implemented & Template Issue Fixed
+
+**Issue:** The "Assign" link in the instructor dashboard was not functional - clicking it showed a placeholder alert message. During implementation, a template name collision caused the instructor dashboard to display the wrong template content.
+
+**Root Cause:** 
+1. Missing route, handler, and template for assigning readings to individual students
+2. Template name collision - both `instructor_assignments.html` and `student_assignment_management.html` defined the same `"instructor_content"` block, causing Gin's template loader to overwrite one with the other
+
+**Solution Implemented:**
+- ✅ **Added New Routes** - `GET /instructor/students/:username/assignments` and `POST /instructor/students/:username/assignments/:assignment_id/assign`
+- ✅ **Created Handlers** - `ShowStudentAssignments` and `AssignToStudent` methods in `InstructorAssignmentHandlers`
+- ✅ **Built Template** - `student_assignment_management.html` with comprehensive assignment management interface
+- ✅ **Fixed Template Collision** - Changed student assignment template to use `"student_assignment_content"` block
+- ✅ **Updated Base Template** - Added support for `"student_assignment_content"` template type
+- ✅ **Updated Navigation** - Modified `assignToStudent()` JavaScript function to navigate to new page
+- ✅ **AJAX Integration** - Assignment functionality uses AJAX with success/error messaging
+
+**Features Added:**
+- **Student Assignment Management Page** - Shows all instructor assignments with assignment status for specific student
+- **Assignment Status Indicators** - Visual differentiation between "Already Assigned", "Completed", "In Progress", and "Not Assigned"
+- **One-Click Assignment** - "Assign Reading" buttons for unassigned items
+- **Student Information Display** - Username, email, role, and assignment statistics
+- **Real-time Feedback** - Success/error messages with page refresh to update status
+- **Responsive Design** - Mobile-friendly layout consistent with existing design system
+
+**Technical Details:**
+- **Routes:** 
+  - `GET /instructor/students/:username/assignments` - Shows assignment management page
+  - `POST /instructor/students/:username/assignments/:assignment_id/assign` - Assigns reading to student
+- **Handlers:** 
+  - `handlers.InstructorAssignmentHandlers.ShowStudentAssignments`
+  - `handlers.InstructorAssignmentHandlers.AssignToStudent`
+- **Template:** `templates/student_assignment_management.html` (uses `"student_assignment_content"` block)
+- **Base Template:** Updated to handle `template_type: "student_assignment"`
+- **Navigation Update:** Updated `assignToStudent()` function in `instructor_assignments.html`
+- **Authentication:** Requires instructor role, validates assignment ownership and student role
+- **Database Integration:** Uses existing `models.CreateStudentAssignment()` and related functions
+
+**Template Issue Resolution:**
+- **Problem:** Template name collision caused instructor dashboard to serve "Assign Readings to" page content
+- **Fix:** Renamed template block in `student_assignment_management.html` from `"instructor_content"` to `"student_assignment_content"`
+- **Base Template Update:** Added conditional for `{{else if eq .template_type "student_assignment"}}`
+- **Handler Update:** Pass `"template_type": "student_assignment"` in template data
+- **Result:** Instructor dashboard now correctly shows "Assignment Management" interface
+
+**Testing Results:**
+- ✅ **Route Registration** - Both local auth and OAuth2 sections updated in `main.go`
+- ✅ **Page Accessibility** - Assignment management page loads successfully (HTTP 200)
+- ✅ **Assignment API** - Successfully assigns readings and prevents duplicates
+- ✅ **Status Display** - Shows correct assignment status (assigned/completed/in progress)
+- ✅ **Student Integration** - Assigned readings appear in student's assignment list
+- ✅ **Error Handling** - Proper validation for assignment ownership and duplicate prevention
+- ✅ **Dashboard Fix** - Instructor dashboard correctly displays "Create Assignment" buttons and dashboard content
+- ✅ **Live Testing** - Tested with 87 students and multiple assignments, successfully assigned fresh assignment to student1
+
+**Files Modified:**
+- `main.go` - Added routes in both auth sections
+- `handlers/instructor_assignments.go` - Added `ShowStudentAssignments` and `AssignToStudent` methods
+- `templates/student_assignment_management.html` - New template with unique `"student_assignment_content"` block
+- `templates/base.html` - Added support for `"student_assignment_content"` template type  
+- `templates/instructor_assignments.html` - Updated `assignToStudent()` function
+- `test_instructor_assign_feature.sh` - Created test script for verification
+- `test_complete_assign_feature.sh` - Comprehensive functionality test
+
+**Data Status:**
+- **Note:** Student1 has many assignments from extensive testing (shows "Already Assigned" for most assignments)
+- **Fresh Assignments:** New assignments are correctly available for assignment and show "Assign Reading" buttons
+- **Workflow Verified:** Complete assign workflow tested successfully - dashboard → assign link → student assignment page → assignment creation
+
+**Ready for Production!** - Instructors can now click "Assign" next to any student to access a dedicated assignment management page and assign new readings with immediate feedback. Template rendering issue resolved.
+
+---
+
 ### ✅ July 18, 2025 - Instructor Dashboard "View Progress" Link Fixed
 
 **Issue:** The "View Progress" link in the instructor dashboard was not working - clicking it resulted in 404 errors.
