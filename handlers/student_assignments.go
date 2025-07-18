@@ -184,7 +184,7 @@ func (h *StudentAssignmentHandlers) MarkAsCompleted(c *gin.Context) {
 	}
 
 	// Mark assignment as completed
-	err = h.studentService.MarkAsCompleted(uint(id), userObj.ID)
+	err = h.studentService.MarkAsCompletedByID(uint(id), userObj.ID)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Assignment not found"})
@@ -223,7 +223,7 @@ func (h *StudentAssignmentHandlers) MarkAsInProgress(c *gin.Context) {
 	}
 
 	// Mark assignment as in progress
-	err = h.studentService.MarkAsInProgress(uint(id), userObj.ID)
+	err = h.studentService.MarkAsInProgressByID(uint(id), userObj.ID)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Assignment not found"})

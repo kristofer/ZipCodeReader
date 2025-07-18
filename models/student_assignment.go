@@ -53,6 +53,16 @@ func GetStudentAssignment(db *gorm.DB, assignmentID, studentID uint) (*StudentAs
 	return &studentAssignment, nil
 }
 
+// GetStudentAssignmentByID retrieves a student assignment by its ID and student ID
+func GetStudentAssignmentByID(db *gorm.DB, studentAssignmentID, studentID uint) (*StudentAssignment, error) {
+	var studentAssignment StudentAssignment
+	result := db.Preload("Assignment").Preload("Assignment.CreatedBy").Preload("Student").Where("id = ? AND student_id = ?", studentAssignmentID, studentID).First(&studentAssignment)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &studentAssignment, nil
+}
+
 // GetStudentAssignmentsByStudent retrieves all assignments for a specific student
 func GetStudentAssignmentsByStudent(db *gorm.DB, studentID uint) ([]StudentAssignment, error) {
 	var studentAssignments []StudentAssignment

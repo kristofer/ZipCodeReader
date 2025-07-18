@@ -104,7 +104,7 @@ func (h *DashboardHandlers) ShowAssignmentDetail(c *gin.Context) {
 		})
 	} else {
 		// Student can only access assigned assignments
-		studentAssignment, err := h.studentAssignmentService.GetStudentAssignment(uint(id), userObj.ID)
+		studentAssignment, err := h.studentAssignmentService.GetStudentAssignmentByID(uint(id), userObj.ID)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Assignment not found or not assigned to you"})
 			return
@@ -116,6 +116,7 @@ func (h *DashboardHandlers) ShowAssignmentDetail(c *gin.Context) {
 			"assignment":        studentAssignment.Assignment,
 			"studentAssignment": studentAssignment,
 			"use_local_auth":    h.useLocalAuth,
+			"template_type":     "student",
 		})
 	}
 }

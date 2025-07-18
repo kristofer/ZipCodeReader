@@ -67,6 +67,21 @@ func (s *StudentAssignmentService) GetStudentAssignment(assignmentID uint, stude
 	return models.GetStudentAssignment(s.db, assignmentID, studentID)
 }
 
+// GetStudentAssignmentByID retrieves a specific student assignment by its ID
+func (s *StudentAssignmentService) GetStudentAssignmentByID(studentAssignmentID uint, studentID uint) (*models.StudentAssignment, error) {
+	// Validate student exists and has student role
+	var student models.User
+	if err := s.db.First(&student, studentID).Error; err != nil {
+		return nil, errors.New("student not found")
+	}
+
+	if !student.IsStudent() {
+		return nil, errors.New("user is not a student")
+	}
+
+	return models.GetStudentAssignmentByID(s.db, studentAssignmentID, studentID)
+}
+
 // UpdateAssignmentStatus updates the status of a student assignment
 func (s *StudentAssignmentService) UpdateAssignmentStatus(assignmentID uint, studentID uint, status string) error {
 	// Validate status
@@ -96,10 +111,34 @@ func (s *StudentAssignmentService) MarkAsCompleted(assignmentID uint, studentID 
 	return studentAssignment.MarkAsCompleted(s.db)
 }
 
+// MarkAsCompletedByID marks an assignment as completed using student assignment ID
+func (s *StudentAssignmentService) MarkAsCompletedByID(studentAssignmentID uint, studentID uint) error {
+	// Get student assignment by ID
+	studentAssignment, err := s.GetStudentAssignmentByID(studentAssignmentID, studentID)
+	if err != nil {
+		return err
+	}
+
+	// Mark as completed
+	return studentAssignment.MarkAsCompleted(s.db)
+}
+
 // MarkAsInProgress marks an assignment as in progress
 func (s *StudentAssignmentService) MarkAsInProgress(assignmentID uint, studentID uint) error {
 	// Get student assignment
 	studentAssignment, err := s.GetStudentAssignment(assignmentID, studentID)
+	if err != nil {
+		return err
+	}
+
+	// Mark as in progress
+	return studentAssignment.MarkAsInProgress(s.db)
+}
+
+// MarkAsInProgressByID marks an assignment as in progress using student assignment ID
+func (s *StudentAssignmentService) MarkAsInProgressByID(studentAssignmentID uint, studentID uint) error {
+	// Get student assignment by ID
+	studentAssignment, err := s.GetStudentAssignmentByID(studentAssignmentID, studentID)
 	if err != nil {
 		return err
 	}

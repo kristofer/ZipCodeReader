@@ -161,8 +161,8 @@ func main() {
 				studentGroup.GET("/assignments/upcoming", studentAssignmentHandlers.GetUpcomingAssignments)
 				studentGroup.GET("/assignments/recent", studentAssignmentHandlers.GetRecentlyCompleted)
 				studentGroup.GET("/categories", studentAssignmentHandlers.GetCategories)
-				studentGroup.GET("/assignments/by-status", studentAssignmentHandlers.GetAssignmentsByStatus)
-				studentGroup.GET("/assignments/by-category", studentAssignmentHandlers.GetAssignmentsByCategory)
+				studentGroup.GET("/assignments/status/:status", studentAssignmentHandlers.GetAssignmentsByStatus)
+				studentGroup.GET("/assignments/category/:category", studentAssignmentHandlers.GetAssignmentsByCategory)
 				studentGroup.GET("/assignments/search", studentAssignmentHandlers.SearchAssignments)
 
 				// Due date notification routes for students
@@ -240,8 +240,8 @@ func main() {
 				studentGroup.GET("/assignments/upcoming", studentAssignmentHandlers.GetUpcomingAssignments)
 				studentGroup.GET("/assignments/recent", studentAssignmentHandlers.GetRecentlyCompleted)
 				studentGroup.GET("/categories", studentAssignmentHandlers.GetCategories)
-				studentGroup.GET("/assignments/by-status", studentAssignmentHandlers.GetAssignmentsByStatus)
-				studentGroup.GET("/assignments/by-category", studentAssignmentHandlers.GetAssignmentsByCategory)
+				studentGroup.GET("/assignments/status/:status", studentAssignmentHandlers.GetAssignmentsByStatus)
+				studentGroup.GET("/assignments/category/:category", studentAssignmentHandlers.GetAssignmentsByCategory)
 				studentGroup.GET("/assignments/search", studentAssignmentHandlers.SearchAssignments)
 
 				// Due date notification routes for students

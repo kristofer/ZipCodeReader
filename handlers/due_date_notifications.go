@@ -120,7 +120,7 @@ func (h *DueDateNotificationHandlers) GetInstructorDueDateOverview(c *gin.Contex
 	})
 }
 
-// GetDueDateNotifications handles GET /student/due-dates/notifications
+// GetDueDateNotifications handles GET /student/due-dates/notifications and GET /instructor/due-dates/notifications
 func (h *DueDateNotificationHandlers) GetDueDateNotifications(c *gin.Context) {
 	// Get user from context
 	user, exists := c.Get("user")
@@ -130,7 +130,7 @@ func (h *DueDateNotificationHandlers) GetDueDateNotifications(c *gin.Context) {
 	}
 
 	userObj := user.(*models.User)
-	if !userObj.IsStudent() {
+	if !userObj.IsStudent() && !userObj.IsInstructor() {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
 		return
 	}
