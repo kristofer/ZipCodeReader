@@ -617,3 +617,113 @@ func (h *InstructorAssignmentHandlers) GetDashboardStats(c *gin.Context) {
 		"students":                  students,
 	})
 }
+
+// GetStudentProgress handles GET /instructor/students/:username/progress
+func (h *InstructorAssignmentHandlers) GetStudentProgress(c *gin.Context) {
+	// Get user from context
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	userObj := user.(*models.User)
+	if !userObj.IsInstructor() {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
+		return
+	}
+
+	// Get username from URL parameter
+	username := c.Param("username")
+	if username == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username is required"})
+		return
+	}
+
+	// Get student by username
+	student, err := models.GetUserByUsername(h.assignmentService.GetDB(), username)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Student not found"})
+		return
+	}
+
+	// Verify student role
+	if !student.IsStudent() {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User is not a student"})
+		return
+	}
+
+	// Get all student assignments for this student
+	studentAssignments, err := models.GetStudentAssignmentsByStudent(h.assignmentService.GetDB(), student.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Calculate progress statistics
+	totalAssignments := len(studentAssignments)
+	completedCount := 0
+	inProgressCount := 0
+	assignedCount := 0
+	overdueCount := 0
+	
+	for _, sa := range studentAssignments {
+		switch sa.Status {
+		case "completed":
+			completedCount++
+		case "in_progress":
+			inProgressCount++
+		case "assigned":
+			assignedCount++
+		}
+		
+		// Check if overdue
+		if sa.Assignment.DueDate != nil && time.Now().After(*sa.Assignment.DueDate) && sa.Status != "completed" {
+			overdueCount++
+		}
+	}
+
+	completionRate := 0.0
+	if totalAssignments > 0 {
+		completionRate = float64(completedCount) / float64(totalAssignments) * 100
+	}
+
+	// Check if this is an API request (Accept header contains application/json)
+	acceptHeader := c.GetHeader("Accept")
+	if strings.Contains(acceptHeader, "application/json") {
+		// Return JSON for API requests
+		c.JSON(http.StatusOK, gin.H{
+			"student": gin.H{
+				"id":       student.ID,
+				"username": student.Username,
+				"email":    student.Email,
+			},
+			"progress": gin.H{
+				"total_assignments":   totalAssignments,
+				"completed":          completedCount,
+				"in_progress":        inProgressCount,
+				"assigned":           assignedCount,
+				"overdue":            overdueCount,
+				"completion_rate":    completionRate,
+			},
+			"assignments": studentAssignments,
+		})
+		return
+	}
+
+	// Render HTML template for browser requests
+	c.HTML(http.StatusOK, "student_progress.html", gin.H{
+		"title":   "Student Progress - " + student.Username,
+		"user":    userObj,
+		"student": student,
+		"progress": gin.H{
+			"total_assignments":   totalAssignments,
+			"completed":          completedCount,
+			"in_progress":        inProgressCount,
+			"assigned":           assignedCount,
+			"overdue":            overdueCount,
+			"completion_rate":    completionRate,
+		},
+		"assignments": studentAssignments,
+	})
+}
