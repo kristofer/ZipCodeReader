@@ -1,169 +1,211 @@
-{{template "base.html" .}}
-
-{{define "assignment_detail_content"}}
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Back Button -->
-    <div class="mb-6">
-        <a href="/student/dashboard" class="flex items-center text-gray-600 hover:text-gray-800">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-            </svg>
-            Back to Assignments
-        </a>
-    </div>
-
-    <!-- Assignment Details -->
-    <div class="bg-white rounded-lg shadow">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <div class="flex justify-between items-start">
-                <div>
-                    <h1 class="text-2xl font-bold text-gray-900">{{.assignment.Title}}</h1>
-                    <p class="text-sm text-gray-500 mt-1">{{.assignment.Category}}</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.assignment.Title}} - ZipCodeReader</title>
+    <link href="/static/css/style.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <nav class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">
+                <a href="/" class="hover:text-blue-200">ZipCodeReader</a>
+            </h1>
+            <div class="flex items-center space-x-4">
+                <a href="/" class="hover:text-blue-200">Home</a>
+                <a href="/health" class="hover:text-blue-200">Health</a>
+                <a href="/student/dashboard" class="hover:text-blue-200">Dashboard</a>
+                <div class="flex items-center space-x-2">
+                    <img src="{{.user.AvatarURL}}" alt="Avatar" class="w-8 h-8 rounded-full">
+                    <span class="text-sm">{{.user.Username}}</span>
                 </div>
-                <div class="px-3 py-1 rounded-full text-sm font-medium
-                    {{if eq .studentAssignment.Status "assigned"}}bg-gray-100 text-gray-800{{end}}
-                    {{if eq .studentAssignment.Status "in_progress"}}bg-yellow-100 text-yellow-800{{end}}
-                    {{if eq .studentAssignment.Status "completed"}}bg-green-100 text-green-800{{end}}">
-                    {{if eq .studentAssignment.Status "assigned"}}Assigned{{end}}
-                    {{if eq .studentAssignment.Status "in_progress"}}In Progress{{end}}
-                    {{if eq .studentAssignment.Status "completed"}}Completed{{end}}
-                </div>
-            </div>
-        </div>
-
-        <div class="px-6 py-6">
-            <!-- Assignment Info -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">Assignment Details</h3>
-                    <div class="space-y-2">
-                        <div class="flex justify-between">
-                            <span class="text-sm font-medium text-gray-500">Assigned Date:</span>
-                            <span class="text-sm text-gray-900">{{.studentAssignment.CreatedAt.Format "Jan 2, 2006"}}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-sm font-medium text-gray-500">Due Date:</span>
-                            <span class="text-sm text-gray-900">
-                                {{if .assignment.DueDate}}
-                                    {{.assignment.DueDate.Format "Jan 2, 2006 3:04 PM"}}
-                                {{else}}
-                                    No due date
-                                {{end}}
-                            </span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-sm font-medium text-gray-500">Instructor:</span>
-                            <span class="text-sm text-gray-900">{{.assignment.CreatedBy.Username}}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-sm font-medium text-gray-500">Current Status:</span>
-                            <span class="text-sm text-gray-900 capitalize">{{.studentAssignment.Status}}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">Progress</h3>
-                    <div class="space-y-2">
-                        <div class="flex justify-between">
-                            <span class="text-sm font-medium text-gray-500">Completed At:</span>
-                            <span class="text-sm text-gray-900">
-                                {{if .studentAssignment.CompletedAt}}
-                                    {{.studentAssignment.CompletedAt.Format "Jan 2, 2006 3:04 PM"}}
-                                {{else}}
-                                    Not completed
-                                {{end}}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Description -->
-            <div class="mb-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-2">Description</h3>
-                <p class="text-gray-700 whitespace-pre-wrap">{{.assignment.Description}}</p>
-            </div>
-
-            <!-- Reading Link -->
-            <div class="mb-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-2">Reading Material</h3>
-                <div class="flex items-center space-x-4">
-                    <a href="{{.assignment.URL}}" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                        </svg>
-                        Open Reading Material
+                {{if .use_local_auth}}
+                    <a href="/local/logout" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm">
+                        Logout
                     </a>
-                </div>
+                {{else}}
+                    <a href="/auth/logout" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm">
+                        Logout
+                    </a>
+                {{end}}
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto mt-8 p-4">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Back Button -->
+            <div class="mb-6">
+                <a href="/student/dashboard" class="flex items-center text-gray-600 hover:text-gray-800">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Back to Assignments
+                </a>
             </div>
 
-            <!-- Actions -->
-            <div class="border-t border-gray-200 pt-6">
-                <div class="flex space-x-4">
-                    {{if eq .studentAssignment.Status "assigned"}}
-                        <button onclick="markInProgress({{.studentAssignment.ID}})" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg">
-                            Start Reading
-                        </button>
-                    {{end}}
-                    {{if eq .studentAssignment.Status "in_progress"}}
-                        <button onclick="markCompleted({{.studentAssignment.ID}})" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
-                            Mark as Completed
-                        </button>
-                    {{end}}
-                    {{if eq .studentAssignment.Status "completed"}}
-                        <span class="text-green-600 font-medium">✓ Assignment Completed</span>
-                    {{end}}
+            <!-- Assignment Details -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900">{{.assignment.Title}}</h1>
+                            <p class="text-sm text-gray-500 mt-1">{{.assignment.Category}}</p>
+                        </div>
+                        <div class="px-3 py-1 rounded-full text-sm font-medium
+                            {{if eq .studentAssignment.Status "assigned"}}bg-gray-100 text-gray-800{{end}}
+                            {{if eq .studentAssignment.Status "in_progress"}}bg-yellow-100 text-yellow-800{{end}}
+                            {{if eq .studentAssignment.Status "completed"}}bg-green-100 text-green-800{{end}}">
+                            {{if eq .studentAssignment.Status "assigned"}}Assigned{{end}}
+                            {{if eq .studentAssignment.Status "in_progress"}}In Progress{{end}}
+                            {{if eq .studentAssignment.Status "completed"}}Completed{{end}}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-6 py-6">
+                    <!-- Assignment Info -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Assignment Details</h3>
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span class="text-sm font-medium text-gray-500">Assigned Date:</span>
+                                    <span class="text-sm text-gray-900">{{.studentAssignment.CreatedAt.Format "Jan 2, 2006"}}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-sm font-medium text-gray-500">Due Date:</span>
+                                    <span class="text-sm text-gray-900">
+                                        {{if .assignment.DueDate}}
+                                            {{.assignment.DueDate.Format "Jan 2, 2006 3:04 PM"}}
+                                        {{else}}
+                                            No due date
+                                        {{end}}
+                                    </span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-sm font-medium text-gray-500">Instructor:</span>
+                                    <span class="text-sm text-gray-900">{{.assignment.CreatedBy.Username}}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-sm font-medium text-gray-500">Current Status:</span>
+                                    <span class="text-sm text-gray-900 capitalize">{{.studentAssignment.Status}}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Progress</h3>
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span class="text-sm font-medium text-gray-500">Completed At:</span>
+                                    <span class="text-sm text-gray-900">
+                                        {{if .studentAssignment.CompletedAt}}
+                                            {{.studentAssignment.CompletedAt.Format "Jan 2, 2006 3:04 PM"}}
+                                        {{else}}
+                                            Not completed
+                                        {{end}}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Description</h3>
+                        <p class="text-gray-700 whitespace-pre-wrap">{{.assignment.Description}}</p>
+                    </div>
+
+                    <!-- Reading Link -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Reading Material</h3>
+                        <div class="flex items-center space-x-4">
+                            <a href="{{.assignment.URL}}" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                </svg>
+                                Open Reading Material
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="border-t border-gray-200 pt-6">
+                        <div class="flex space-x-4">
+                            {{if eq .studentAssignment.Status "assigned"}}
+                                <button onclick="markInProgress({{.studentAssignment.ID}})" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg">
+                                    Start Reading
+                                </button>
+                            {{end}}
+                            {{if eq .studentAssignment.Status "in_progress"}}
+                                <button onclick="markCompleted({{.studentAssignment.ID}})" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
+                                    Mark as Completed
+                                </button>
+                            {{end}}
+                            {{if eq .studentAssignment.Status "completed"}}
+                                <span class="text-green-600 font-medium">✓ Assignment Completed</span>
+                            {{end}}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
+    </main>
 
-<script>
-function markInProgress(studentAssignmentId) {
-    fetch(`/student/assignments/${studentAssignmentId}/progress`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({status: 'in_progress'})
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message) {
-            location.reload();
-        } else {
-            alert('Error updating assignment status: ' + (data.error || 'Unknown error'));
-        }
-    })
-    .catch(error => {
-        console.error('Error updating assignment status:', error);
-        alert('Error updating assignment status');
-    });
-}
+    <footer class="bg-gray-800 text-white p-4 mt-16">
+        <div class="container mx-auto text-center">
+            <p>&copy; 2025 ZipCodeReader - A copilot-assisted app</p>
+        </div>
+    </footer>
 
-function markCompleted(studentAssignmentId) {
-    fetch(`/student/assignments/${studentAssignmentId}/complete`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({status: 'completed'})
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message) {
-            alert('Assignment completed successfully!');
-            location.reload();
-        } else {
-            alert('Error completing assignment: ' + (data.error || 'Unknown error'));
-        }
-    })
-    .catch(error => {
-        console.error('Error completing assignment:', error);
-        alert('Error completing assignment');
-    });
-}
-</script>
-{{end}}
+    <script>
+    function markInProgress(studentAssignmentId) {
+        fetch(`/student/assignments/${studentAssignmentId}/progress`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({status: 'in_progress'})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                location.reload();
+            } else {
+                alert('Error updating assignment status: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error updating assignment status:', error);
+            alert('Error updating assignment status');
+        });
+    }
+
+    function markCompleted(studentAssignmentId) {
+        fetch(`/student/assignments/${studentAssignmentId}/complete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({status: 'completed'})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                alert('Assignment completed successfully!');
+                location.reload();
+            } else {
+                alert('Error completing assignment: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error completing assignment:', error);
+            alert('Error completing assignment');
+        });
+    }
+    </script>
+</body>
+</html>

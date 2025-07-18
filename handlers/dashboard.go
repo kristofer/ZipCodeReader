@@ -116,7 +116,6 @@ func (h *DashboardHandlers) ShowAssignmentDetail(c *gin.Context) {
 			"assignment":        studentAssignment.Assignment,
 			"studentAssignment": studentAssignment,
 			"use_local_auth":    h.useLocalAuth,
-			"template_type":     "student",
 		})
 	}
 }
