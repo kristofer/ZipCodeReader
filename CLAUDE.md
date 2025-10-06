@@ -1714,3 +1714,91 @@ Following standard Go project layout with clear separation of concerns:
 - Search and filtering capabilities
 - Due date notifications
 - Role-based access control
+
+### ✅ October 6, 2025 - Makefile & Build Automation Added
+
+**Objective:** Add comprehensive build automation and developer tooling.
+
+**Files Created:**
+- `Makefile` - 30+ commands for build, test, run, and maintenance
+- `.air.toml` - Hot reload configuration for development mode
+- `README_MAKEFILE.md` - Complete usage documentation
+
+**Key Features:**
+
+**Development Commands:**
+- `make build` - Build the application binary
+- `make run` - Run with local authentication (default)
+- `make run-oauth` - Run with GitHub OAuth2 authentication  
+- `make dev` - Run with hot reload (auto-restart on file changes)
+
+**Testing Commands:**
+- `make test` - Run all unit tests
+- `make test-verbose` - Run tests with verbose output
+- `make test-coverage` - Generate coverage reports (HTML)
+- `make test-handlers` - Run only handler tests
+- `make test-services` - Run only service tests
+- `make test-models` - Run only model tests
+
+**Maintenance Commands:**
+- `make clean` - Remove binary and temporary files
+- `make clean-db` - Remove database files
+- `make clean-all` - Full clean (binary + database + backups)
+- `make fmt` - Format Go code
+- `make lint` - Run linters (requires golangci-lint)
+- `make check` - Run fmt + tests (pre-commit checks)
+
+**Database Commands:**
+- `make migrate` - Create fresh database with migrations
+- `make seed` - Seed database with test users
+- `make backup` - Backup database file
+- `make restore` - Restore from latest backup
+
+**Information Commands:**
+- `make help` - Show all available commands
+- `make info` - Display project statistics
+
+**Benefits:**
+- ✅ One-command build, test, and run
+- ✅ Hot reload for faster development
+- ✅ Automated test coverage reports
+- ✅ Database backup/restore functionality
+- ✅ Pre-commit checks with `make check`
+- ✅ Consistent development workflow
+- ✅ Easy onboarding for new developers
+
+**Test Users (after `make seed`):**
+- `instructor1` / `password123` (instructor role)
+- `student1` / `password123` (student role)
+- `student2` / `password123` (student role)
+
+**Quick Start:**
+```bash
+# Build and run
+make run
+
+# Run tests
+make test
+
+# Development with hot reload
+make dev
+
+# Pre-commit checks
+make check
+
+# Clean everything
+make clean-all
+```
+
+**Project Statistics (via `make info`):**
+- Go Files: 23
+- Lines of Code: 4,203
+- Test Files: 7
+- Handlers: 5
+- Services: 2
+- Models: 4
+
+See [README_MAKEFILE.md](README_MAKEFILE.md) for complete documentation.
+
+---
+
