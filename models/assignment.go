@@ -8,17 +8,20 @@ import (
 
 // Assignment represents a reading assignment in the system
 type Assignment struct {
-	ID          uint           `json:"id" gorm:"primaryKey"`
-	Title       string         `json:"title" gorm:"not null"`
-	Description string         `json:"description"`
-	URL         string         `json:"url" gorm:"not null"`
-	Category    string         `json:"category"`
-	DueDate     *time.Time     `json:"due_date"`
-	CreatedByID uint           `json:"created_by_id"`
-	CreatedBy   User           `json:"created_by" gorm:"foreignKey:CreatedByID"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
-	DeletedAt   gorm.DeletedAt `json:"deleted_at" gorm:"index"`
+	ID               uint           `json:"id" gorm:"primaryKey"`
+	Title            string         `json:"title" gorm:"not null"`
+	Description      string         `json:"description"`
+	URL              string         `json:"url" gorm:"not null"`
+	Category         string         `json:"category"`
+	DueDate          *time.Time     `json:"due_date"`
+	Type             string         `json:"type" gorm:"default:reading"`        // "reading", "programming", "quiz"
+	EstimatedMinutes int            `json:"estimated_minutes" gorm:"default:0"` // Time estimate for completion
+	RepositoryURL    string         `json:"repository_url"`                     // For programming assignments
+	CreatedByID      uint           `json:"created_by_id"`
+	CreatedBy        User           `json:"created_by" gorm:"foreignKey:CreatedByID"`
+	CreatedAt        time.Time      `json:"created_at"`
+	UpdatedAt        time.Time      `json:"updated_at"`
+	DeletedAt        gorm.DeletedAt `json:"deleted_at" gorm:"index"`
 }
 
 // CreateAssignment creates a new assignment with validation

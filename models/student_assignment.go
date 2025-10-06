@@ -8,16 +8,19 @@ import (
 
 // StudentAssignment represents the relationship between a student and an assignment
 type StudentAssignment struct {
-	ID           uint           `json:"id" gorm:"primaryKey"`
-	AssignmentID uint           `json:"assignment_id" gorm:"not null"`
-	Assignment   Assignment     `json:"assignment" gorm:"foreignKey:AssignmentID"`
-	StudentID    uint           `json:"student_id" gorm:"not null"`
-	Student      User           `json:"student" gorm:"foreignKey:StudentID"`
-	Status       string         `json:"status" gorm:"default:assigned"` // assigned, in_progress, completed
-	CompletedAt  *time.Time     `json:"completed_at"`
-	CreatedAt    time.Time      `json:"created_at"`
-	UpdatedAt    time.Time      `json:"updated_at"`
-	DeletedAt    gorm.DeletedAt `json:"deleted_at" gorm:"index"`
+	ID              uint           `json:"id" gorm:"primaryKey"`
+	AssignmentID    uint           `json:"assignment_id" gorm:"not null"`
+	Assignment      Assignment     `json:"assignment" gorm:"foreignKey:AssignmentID"`
+	StudentID       uint           `json:"student_id" gorm:"not null"`
+	Student         User           `json:"student" gorm:"foreignKey:StudentID"`
+	Status          string         `json:"status" gorm:"default:assigned"` // assigned, in_progress, completed
+	TimeSpent       int            `json:"time_spent" gorm:"default:0"`    // Minutes spent (self-reported)
+	ProgressPercent int            `json:"progress_percent" gorm:"default:0"` // 0-100 for reading progress
+	SubmissionURL   string         `json:"submission_url"`                 // Link to GitHub PR, Google Doc, etc.
+	CompletedAt     *time.Time     `json:"completed_at"`
+	CreatedAt       time.Time      `json:"created_at"`
+	UpdatedAt       time.Time      `json:"updated_at"`
+	DeletedAt       gorm.DeletedAt `json:"deleted_at" gorm:"index"`
 }
 
 // Assignment status constants
