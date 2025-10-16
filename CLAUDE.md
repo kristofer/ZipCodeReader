@@ -5,6 +5,92 @@ Building a web-based reading list manager for ZipCode students and instructors u
 
 ## Development Progress
 
+### 🧹 January 2026 - **CLEANUP PHASE: Repository Organization & Documentation Consolidation**
+
+**Objective:** Clean up repository cruft, consolidate documentation, and prepare for next development phase.
+
+**Actions Completed:**
+
+**1. Documentation Consolidation**
+- ✅ Created new simplified `README.md` focused on current state
+- ✅ Moved historical analysis docs to `docs/archive/`
+  - `Codebase-Simplification-Analysis.md` → archived
+  - `Data-Model-Enhancements.md` → archived
+  - `PHASE2_TESTING.md` → archived
+  - `PHASE3_COMPLETE.md` → archived
+- ✅ Created `docs/` directory structure for organized documentation
+- ✅ Created `docs/README.md` - Documentation index
+- ✅ Created `docs/architecture.md` - Comprehensive architecture documentation
+- ✅ Moved `README_QUICKSTART.md` → `docs/quickstart.md`
+- ✅ Moved `README_MAKEFILE.md` → `docs/makefile.md`
+
+**2. Test Script Organization**
+- ✅ Created `scripts/` directory for test and utility scripts
+- ✅ Moved all 20+ shell test scripts (`.sh`) to `scripts/`
+- ✅ Removed test artifacts:
+  - Cookie files (`*_cookies.txt`)
+  - Test HTML files (`student_dashboard.html`)
+  - Test binaries (`test_build`)
+
+**3. New Documentation Created**
+- ✅ `README.md` - Clean, focused on current state (~220 lines)
+- ✅ `docs/README.md` - Documentation index with navigation
+- ✅ `docs/architecture.md` - Complete architecture guide (~585 lines)
+  - System architecture diagrams
+  - Layer responsibilities
+  - Data flow examples
+  - Database schema
+  - Testing strategy
+  - Security considerations
+  - Performance guidelines
+
+**4. Repository Structure (After Cleanup)**
+```
+zipcodereader/
+├── README.md                   # Simplified, current state
+├── CLAUDE.md                   # Development log (this file)
+├── LICENSE
+├── Makefile
+├── .gitignore
+├── go.mod, go.sum
+├── main.go
+├── docs/                       # 📁 NEW - Organized documentation
+│   ├── README.md              # Documentation index
+│   ├── architecture.md        # Architecture guide
+│   ├── quickstart.md          # Quick start
+│   ├── makefile.md           # Make commands
+│   └── archive/               # Historical docs
+│       ├── Codebase-Simplification-Analysis.md
+│       ├── Data-Model-Enhancements.md
+│       ├── PHASE2_TESTING.md
+│       └── PHASE3_COMPLETE.md
+├── scripts/                    # 📁 NEW - Test & utility scripts
+│   ├── complete_dashboard_test.sh
+│   ├── debug_*.sh
+│   ├── test_*.sh
+│   └── (20+ other test scripts)
+├── handlers/, services/, models/, routes/
+├── middleware/, config/, database/
+├── templates/, static/
+└── (clean - no cruft!)
+```
+
+**Benefits:**
+- ✅ Clean top-level directory (7 files vs 40+ files)
+- ✅ Easy to find documentation (`docs/` folder)
+- ✅ Historical context preserved in `docs/archive/`
+- ✅ Test scripts organized in `scripts/`
+- ✅ New contributors can understand project quickly
+- ✅ Reduced cognitive load when navigating project
+
+**Next Phase:** Data Model Simplification & Application Improvements
+- Review and simplify data model
+- Improve assignment type handling
+- Enhance UI/UX based on usage feedback
+- Consider removing unused features
+
+---
+
 ### ✅ October 6, 2025 - **MAJOR REFACTOR: Codebase Simplification Complete**
 
 **Objective:** Eliminate technical debt, reduce code duplication, and improve maintainability while preserving all functionality.
