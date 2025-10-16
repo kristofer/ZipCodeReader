@@ -23,12 +23,23 @@ go build -o zipcodereader .
 ./zipcodereader
 ```
 
+### Option 3: Development with Hot Reload
+
+```bash
+# Automatically rebuilds when you change Go files
+make dev
+```
+
+The hot reload feature uses a built-in watch script that monitors your Go files and automatically rebuilds and restarts the server when changes are detected. No additional tools required!
+
 ## 📋 Common Commands
 
 ```bash
 make help           # Show all available commands
+make run            # Run application (local auth)
+make dev            # Run with hot reload (auto-restart on changes)
 make test           # Run all tests
-make dev            # Run with hot reload
+make test-coverage  # Generate coverage report
 make clean-all      # Clean everything
 make seed           # Add test users
 ```
@@ -70,10 +81,28 @@ zipcodereader/
 
 ## 🔧 Development
 
-```bash
-# Start development server with hot reload
-make dev
+### Hot Reload Development
 
+```bash
+# Start with automatic restart on file changes
+make dev
+```
+
+The `make dev` command provides hot reload functionality:
+- Automatically rebuilds when you save Go files
+- Restarts the server with your changes
+- No manual restarts needed
+- Uses built-in watch script (no dependencies)
+
+**Alternative hot reload tools** (optional):
+- Install `air`: `go install github.com/air-verse/air@latest`
+- Install `entr`: `brew install entr`
+
+If you have these installed, `make dev` will use them automatically.
+
+### Testing
+
+```bash
 # Run tests
 make test
 
@@ -86,15 +115,22 @@ make test-coverage
 
 ## 📦 Dependencies
 
-- Go 1.21+
+- Go 1.25+
 - SQLite3 (built-in)
 - Gin web framework
 - GORM ORM
 
-Install dependencies:
+Install/update dependencies:
 ```bash
 make deps
+# or
+go mod tidy
 ```
+
+**Optional development tools:**
+- `air` - For faster hot reload (optional, built-in alternative available)
+- `entr` - Alternative file watcher (optional)
+- `golangci-lint` - For linting (optional)
 
 ## 🎯 Features
 

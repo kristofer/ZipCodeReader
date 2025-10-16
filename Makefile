@@ -64,9 +64,8 @@ dev:
 		echo "Running with entr (auto-rebuild on file change)..."; \
 		find . -name '*.go' | entr -r make run; \
 	else \
-		echo "Installing air for hot reload..."; \
-		go install github.com/cosmtrek/air@latest; \
-		air; \
+		echo "🔄 Using built-in watch script for hot reload..."; \
+		./scripts/watch.sh; \
 	fi
 
 ## test: Run all unit tests

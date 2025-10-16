@@ -83,6 +83,24 @@ zipcodereader/
 - ✅ New contributors can understand project quickly
 - ✅ Reduced cognitive load when navigating project
 
+**5. Hot Reload Development Tool**
+- ✅ Fixed `make dev` command (air package migration issue)
+- ✅ Created `scripts/watch.sh` - Built-in hot reload script
+  - No external dependencies required
+  - Watches Go files for changes
+  - Auto-rebuilds and restarts server
+  - Clean shutdown handling
+- ✅ Updated Makefile to use built-in watch script as fallback
+- ✅ Updated `.gitignore` to exclude binaries and test artifacts
+- ✅ Fixed `go.sum` dependencies with `go mod tidy`
+- ✅ Created `scripts/README.md` - Documentation for all scripts
+
+**Technical Details:**
+- **Issue:** `air` package moved from `github.com/cosmtrek/air` to `github.com/air-verse/air`
+- **Solution:** Created self-contained watch script that monitors file changes
+- **Benefits:** No external tool installation required, works out of the box
+- **Usage:** `make dev` automatically uses watch.sh if air/entr not installed
+
 **Next Phase:** Data Model Simplification & Application Improvements
 - Review and simplify data model
 - Improve assignment type handling
